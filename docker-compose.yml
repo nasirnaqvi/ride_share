@@ -1,15 +1,22 @@
 version: '3'
 services:
   server:
+    env_file: .env
     build:
       context: ./server
-      dockerfile: Dockerfile
-    ports:
-      - '5000:5000'
+      dockerfile: DockerFile
+    expose:
+      - '8080'
 
   client:
+    env_file: .env
     build:
       context: ./client
-      dockerfile: Dockerfile
+      dockerfile: DockerFile
     ports:
       - '3000:3000'
+    depends_on:
+      - server
+
+volumes:
+  server:
