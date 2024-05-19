@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  server:
+    build: ./server
+    ports:
+      - '3000:3000'
+    # volumes:
+    #   - ride_share:/var/lib/postgresql/data
+    #   # - ./server/init_data:/docker-entrypoint-initdb.d
+
+
+  client:
+    build: ./client
+    ports: 
+      - '5000:5000'
+    environment:
+      - VITE_BACKEND_URL=http://localhost:3000
+    command: npm run dev
+    
+# volumes: 
+#   ride_share:
