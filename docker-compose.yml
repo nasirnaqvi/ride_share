@@ -29,9 +29,9 @@ services:
       - type: bind
         source: ./client/public
         target: /app/public
-    command: npm run dev
     depends_on:
       - server
+    command: npm run dev
       
   mongo:
     image: mongo:latest
