@@ -29,6 +29,8 @@ services:
       - type: bind
         source: ./client/public
         target: /app/public
+    environment:
+      - VITE_BACKEND_URL=http://localhost:8080
     depends_on:
       - server
     command: npm run dev

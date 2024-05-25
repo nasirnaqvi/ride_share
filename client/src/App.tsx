@@ -5,7 +5,6 @@ import Login from './resources/pages/Login'
 import Profile from './resources/pages/Profile'
 
 export default function App() {
-  
 
   return (
     <Router> 
