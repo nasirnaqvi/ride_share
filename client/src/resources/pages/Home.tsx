@@ -1,20 +1,9 @@
-import React, { useState } from 'react';
-import Navbar from './../partials/menu.jsx';
 
-const Home = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const handleLogout = () => {
-
-    setIsLoggedIn(false);
-  }
-
+export default function Home() {
   return (
     <div>
-      <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} />
-      {/* idk what to put here */}
+      <h1>This is the home page!</h1>
     </div>
-  );
+  )
 }
-
-export default Home;
