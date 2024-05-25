@@ -17,7 +17,7 @@ export default function Login() {
     function handleLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
-        if (username === 'admin' && password === 'abc123') {
+        if (username === 'admin' && password === 'admin') {
             setIsAuthenticated(true)
         }
         else {
