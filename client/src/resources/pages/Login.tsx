@@ -26,8 +26,12 @@ export default function Login() {
     }
 
     return (
-        <form onSubmit={handleLogin}>  
-            <input 
+        <form 
+            onSubmit={handleLogin}
+            className="flex flex-col w-1/4 mx-auto mt-20 p-4 bg-gray-200 rounded-lg shadow-lg"
+        >  
+            <input
+                className="mb-2 p-2 rounded-md" 
                 type="text" 
                 placeholder="username" 
                 name="username"
@@ -35,13 +39,19 @@ export default function Login() {
                 onChange={(e) => setUsername(e.target.value)} 
             />
             <input 
+                className="mb-2 p-2 rounded-md"
                 type="password" 
                 placeholder="password"
                 name="password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
             />
-            <button type="submit">Login</button>
+            <button 
+                type="submit"
+                className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+            >
+                Login
+            </button>
         </form>
     )
 }
