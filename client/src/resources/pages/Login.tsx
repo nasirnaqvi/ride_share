@@ -1,13 +1,16 @@
 import {FormEvent, useState, useEffect} from 'react';
+import {useNavigate} from 'react-router-dom';
 
 export default function Login() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [isAuthenticated, setIsAuthenticated] = useState(false)
 
+    const navigate = useNavigate()
+
     useEffect(() => {
         if (isAuthenticated) {
-            window.location.replace('/home')
+            navigate('/home')
         }
     }, [isAuthenticated])
 
