@@ -1,5 +1,6 @@
 import {FormEvent, useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
+import axios from 'axios';
 
 export default function Login() {
     const [username, setUsername] = useState('')
@@ -17,12 +18,17 @@ export default function Login() {
     function handleLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
-        if (username === 'admin' && password === 'admin') {
+        axios.post("http://localhost:8080/login", {
+            username,
+            password
+        })
+        .then(() => {
             setIsAuthenticated(true)
-        }
-        else {
-            alert('Invalid credentials')
-        }
+        })
+        .catch((err) => {
+            console.log(err)
+            alert("Invalid username or password")
+        })
     }
 
     return (
