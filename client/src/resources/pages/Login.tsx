@@ -18,17 +18,21 @@ export default function Login() {
     function handleLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
-        axios.post("http://localhost:8080/login", {
-            username,
-            password
-        })
-        .then(() => {
-            setIsAuthenticated(true)
-        })
-        .catch((err) => {
-            console.log(err)
-            alert("Invalid username or password")
-        })
+        axios.get(`${import.meta.env.VITE_BACKEND_URL}/test`)
+            .then((res) => alert(res.data))
+            .catch((err) => alert(err))
+
+        // axios.post(`${import.meta.env.VITE_BACKEND_URL}login`, {
+        //     username,
+        //     password
+        // })
+        // .then(() => {
+        //     setIsAuthenticated(true)
+        // })
+        // .catch((err) => {
+        //     console.log(err)
+        //     alert("Invalid username or password")
+        // })
     }
 
     return (

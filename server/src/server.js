@@ -8,8 +8,8 @@ const User = require('./models/user.model.js'); // Import the user schema
 const app = express();
 const port = 8080;
 
-// const cors = require('cors');
-// app.use(cors());
+const cors = require('cors');
+app.use(cors());
 
 // const mongoUri = process.env.MONGO_URI;
 
@@ -33,8 +33,8 @@ app.get('/users', async (req, res) => {
 
 // Basic implementation of user login
 app.post("/login", (req, res) => {
-  const username = req.query.username;
-  const password = req.query.password;
+  const username = req.body.username;
+  const password = req.body.password;
 
   if (username === "admin" && password === "admin") {
     res.status(200).json({ message: "Login successful" });
