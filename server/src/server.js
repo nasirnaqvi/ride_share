@@ -8,14 +8,14 @@ const User = require('./models/user.model.js'); // Import the user schema
 const app = express();
 const port = 8080;
 
-const cors = require('cors');
-app.use(cors());
+// const cors = require('cors');
+// app.use(cors());
 
-const mongoUri = process.env.MONGO_URI;
+// const mongoUri = process.env.MONGO_URI;
 
-mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch(err => console.error('Error connecting to MongoDB:', err));
+// mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
+//   .then(() => console.log('MongoDB connected successfully'))
+//   .catch(err => console.error('Error connecting to MongoDB:', err));
 
 app.use(express.json());
 
@@ -31,9 +31,21 @@ app.get('/users', async (req, res) => {
   }
 });
 
+// Basic implementation of user login
+app.post("/login", (req, res) => {
+  const username = req.query.username;
+  const password = req.query.password;
 
-app.get("/api", (req, res) => {
-  res.json({ users: ["User 1", "User 2", "User 3"] });
+  if (username === "admin" && password === "admin") {
+    res.status(200).json({ message: "Login successful" });
+  }
+  else {
+    res.status(401).json({ message: "Login failed" });
+  }
+});
+
+app.get("/test", (req, res) => {
+  res.status(200).json({ message: "Test successful" });
 });
 
 app.listen(port, () => {
