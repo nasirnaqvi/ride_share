@@ -1,226 +1,177 @@
-import { FormEvent, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {FormEvent, useState, useEffect, ChangeEvent} from 'react';
+import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
-import './login.css';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [keepSignedIn, setKeepSignedIn] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showSignUpPanel, setShowSignUpPanel] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
+    const [user, setUser] = useState({
+        username: '',
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: ''
+    
+    })
+    const [onLogin, setOnLogin] = useState(true)
+    const [failedLogin, setFailedLogin] = useState(false)
+    const [keepSignedIn, setKeepSignedIn] = useState(false)
 
-  const navigate = useNavigate();
+    const navigate = useNavigate()
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/home');
-    }
-  }, [isAuthenticated, navigate]);
+    useEffect(() => {
+        if (keepSignedIn) {
+            navigate('/home')
+        }
+    }, [])
 
-  useEffect(() => {
-    const textToType = "For all your travel needs.";
-    const delay = 100;
-    let i = 0;
-    const typewriterElement = document.getElementById('description');
-
-    function type() {
-      if (typewriterElement && i < textToType.length) {
-        typewriterElement.innerHTML += textToType.charAt(i);
-        i++;
-        setTimeout(type, delay);
-      }
+    function changeForm(event: ChangeEvent<HTMLInputElement>) {
+        const {name, value} = event.target
+        setUser({...user, [name]: value})
     }
 
-    type();
-  }, []);
+    function handleLogin(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
 
-  function handleLogin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+        axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
+            username: user.username,
+            password: user.password,
+            keepSignedIn: keepSignedIn
+        })
+        .then(() => {
+            navigate('/home')
+        })
+        .catch(() => {
+            setFailedLogin(true)
+        })
+    }
 
-    axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, { username, password, keepSignedIn })
-      .then(() => {
-        setIsAuthenticated(true);
-      })
-      .catch(() => {
-        alert("Username or password is incorrect.");
-      });
-  }
+    function handleSignup(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
 
-  function handleRegister(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+        axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/register`, user)
+        .then(() => {
+            navigate('/login')
+        })
+        .catch(() => {
+            alert('Failed to register user')
+        })
+        setOnLogin(true)
+    }
 
-    axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/register`, { username, password, firstName, lastName, email })
-      .then((response) => {
-        setMessage("Registration successful. Please log in.");
-        setShowSignUpPanel(false);
-      })
-      .catch((error) => {
-        const errorMessage = error.response?.data?.message || "Registration failed.";
-        setMessage(errorMessage);
-      });
-  }
-
-  return (
-    <div id="logindiv">
-      <div id="textblock">
-        <h1>
-          <header id="name">ride share</header>
-        </h1>
-        <h6 id="description"></h6>
-      </div>
-
-      <div className="login-wrap">
-        <div className="login-html">
-          {message && <div className="error-message">{message}</div>}
-          <input
-            id="tab-1"
-            type="radio"
-            name="tab"
-            className="sign-in"
-            checked={!showSignUpPanel}
-            onChange={() => setShowSignUpPanel(false)}
-          />
-          <label htmlFor="tab-1" className="tab">Sign In</label>
-          <input
-            id="tab-2"
-            type="radio"
-            name="tab"
-            className="sign-up"
-            checked={showSignUpPanel}
-            onChange={() => setShowSignUpPanel(true)}
-          />
-          <label htmlFor="tab-2" className="tab">Sign Up</label>
-
-          <div className="login-form">
-            {!showSignUpPanel && (
-              <div className="sign-in-htm">
-                <form onSubmit={handleLogin}>
-                  <div className="group">
-                    <label htmlFor="signin-username" className="label">Username</label>
-                    <input
-                      id="signin-username"
-                      type="text"
-                      className="input"
-                      name="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="group">
-                    <label htmlFor="signin-password" className="label">Password</label>
-                    <input
-                      id="signin-password"
-                      type="password"
-                      className="input"
-                      data-type="password"
-                      name="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="group">
-                    <input
-                      id="check"
-                      type="checkbox"
-                      className="check"
-                      name="keepSignedIn"
-                      onChange={(e) => setKeepSignedIn(e.target.checked)}
-                    />
-                    <label htmlFor="check"><span className="icon"></span> Keep me Signed in</label>
-                  </div>
-                  <div className="group">
-                    <input type="submit" className="button" value="Sign In" />
-                  </div>
-                  <div className="hr"></div>
-                  <div className="foot-lnk">
-                    <a href="#forgot">Forgot Password?</a>
-                  </div>
-                </form>
-              </div>
-            )}
-            {showSignUpPanel && (
-              <div className="sign-up-htm">
-                <form onSubmit={handleRegister}>
-                  <div className="group">
-                    <label htmlFor="signup-username" className="label">Username</label>
-                    <input
-                      id="signup-username"
-                      type="text"
-                      className="input"
-                      name="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="group">
-                    <label htmlFor="first_name" className="label">First Name</label>
-                    <input
-                      id="first_name"
-                      type="text"
-                      className="input"
-                      name="first_name"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="group">
-                    <label htmlFor="last_name" className="label">Last Name</label>
-                    <input
-                      id="last_name"
-                      type="text"
-                      className="input"
-                      name="last_name"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="group">
-                    <label htmlFor="signup-password" className="label">Password</label>
-                    <input
-                      id="signup-password"
-                      type="password"
-                      className="input"
-                      data-type="password"
-                      name="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="group">
-                    <label htmlFor="email" className="label">Email Address</label>
-                    <input
-                      id="email"
-                      type="text"
-                      className="input"
-                      name="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <div className="group">
-                    <input type="submit" className="button" value="Register" />
-                  </div>
-                  <div className="hr"></div>
-                  <div className="foot-lnk">
-                    <label htmlFor="tab-1" onClick={() => setShowSignUpPanel(false)}>Already Member?</label>
-                  </div>
-                </form>
-              </div>
-            )}
-          </div>
+    return (
+        <div className="flex h-screen w-screen pt-32 justify-center font-sans bg-blur">
+            <div className="mt-20 mr-10">
+                <h1 className="text-5xl font-bold text-blue-600 mr-auto">ride share</h1>
+                <h2 className="text-md mr-auto roll-in-left">For all your travel needs</h2>
+            </div>
+            <div 
+                className="flex flex-col justify-center form-background w-1/4 h-4/5 rounded-lg shadow-lg"
+            >
+                <div className="flex ml-4 text-xl">
+                    <button
+                        onClick={() => setOnLogin(true)}  
+                        className={onLogin ? "login-signin" : "login-signin-dark"}  
+                    >
+                        LOG IN
+                    </button>
+                    <button
+                        onClick={() => setOnLogin(false)}
+                        className={onLogin ? "login-signin-dark" : "login-signin"}
+                    >
+                        SIGN UP
+                    </button>
+                </div>
+                {onLogin ? 
+                    <form 
+                        onSubmit={handleLogin}
+                        className="flex flex-col p-4 w-full overflow-auto"
+                    >  
+                        <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
+                        <input
+                            className="input-field" 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            value={user.username} 
+                            onChange={changeForm} 
+                        />
+                        <label htmlFor="password" className="text-white font-bold text-xs">PASSWORD</label>
+                        <input 
+                            className="input-field"
+                            type="password" 
+                            id="password"
+                            name="password" 
+                            value={user.password} 
+                            onChange={changeForm}
+                        />
+                        <section className="flex justify-center">
+                            {failedLogin && <p className="text-gray-900 p-2 font-bold bg-red-500 bg-opacity-50 rounded-md mb-4">Username or password is incorrect.</p>}
+                        </section>
+                        <button 
+                            type="submit"
+                            className="form-submit"
+                        >
+                            LOGIN
+                        </button>
+                    </form>
+                    :
+                    <form 
+                        onSubmit={handleSignup}
+                        className="flex flex-col p-4 w-full overflow-auto"
+                    >  
+                        <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
+                        <input
+                            className="input-field" 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            value={user.username} 
+                            onChange={changeForm} 
+                        />
+                        <label htmlFor="first-name" className="text-white font-bold text-xs">FIRST NAME</label>
+                        <input 
+                            className="input-field"
+                            type="text" 
+                            id="first-name"
+                            name="firstName" 
+                            value={user.firstName} 
+                            onChange={changeForm} 
+                        />
+                        <label htmlFor="last-name" className="text-white font-bold text-xs">LAST NAME</label>
+                        <input 
+                            className="input-field"
+                            type="text" 
+                            id="last-name"
+                            name="lastName" 
+                            value={user.lastName} 
+                            onChange={changeForm}
+                        />
+                        <label htmlFor="email" className="text-white font-bold text-xs">EMAIL</label>
+                        <input 
+                            className="input-field"
+                            type="email" 
+                            id="email"
+                            name="email" 
+                            value={user.email} 
+                            onChange={changeForm} 
+                        />
+                        <label htmlFor="password" className="text-white font-bold text-xs">PASSWORD</label>
+                        <input 
+                            className="input-field"
+                            type="password" 
+                            id="password"
+                            name="password" 
+                            value={user.password} 
+                            onChange={changeForm} 
+                        />
+                        <button 
+                            type="submit"
+                            className="form-submit"
+                        >
+                            SIGN UP
+                        </button>
+                    </form>
+                }
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    )
 }

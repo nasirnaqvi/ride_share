@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .input-field {
+        @apply mb-3 p-2 bg-opacity-30 font-bold bg-gray-200 text-black focus:outline-none focus:ring-2 focus:ring-blue-600;
+        border-radius: 2rem;
+    }
+
+    .bg-blur {
+        background-image: url("./resources/assets/background_blur.jpg");
+        @apply bg-cover bg-center bg-no-repeat;
+    }
+
+    .form-background {
+        background-image: linear-gradient( rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4) ), 
+                          url(https://newyorkrentalbyowner.com/blog/wp-content/uploads/2019/09/Skiing-in-Upstate-New-York-10-Best-Ski-Resorts-For-Your-Winter-Vacation.jpeg);
+        @apply bg-cover bg-center bg-no-repeat;
+    }
+
+    .form-submit {
+        @apply m-4 p-2 bg-blue-500 text-white font-bold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600;
+        border-radius: 2rem;
+    }
+
+    .login-signin {
+        @apply mr-2 text-white font-extrabold focus:outline-none focus:ring-2 focus:ring-blue-600;
+    }
+
+    .login-signin-dark {
+        @apply mr-2 text-gray-900 font-extrabold focus:outline-none focus:ring-2 focus:ring-blue-600;
+    }
+}
+
+@layer utilities {
+    .roll-in-left {
+        width: 12rem;
+        white-space: nowrap;
+        overflow: hidden;
+        animation: type 4s steps(60, end); 
+      }
+      
+      @keyframes type{ 
+        from { width: 0; } 
+      } 
+}

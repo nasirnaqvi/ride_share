@@ -5,7 +5,14 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ["sans-serif", "Inter"],
+      },
+      borderRadius: {
+        "4xl": "2rem",
+      },
+    },
   },
   plugins: [],
 }
