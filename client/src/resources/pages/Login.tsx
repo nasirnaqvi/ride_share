@@ -17,11 +17,11 @@ export default function Login() {
 
     const navigate = useNavigate()
 
-    useEffect(() => {
-        if (keepSignedIn) {
-            navigate('/home')
-        }
-    }, [])
+    // useEffect(() => {
+    //     if (keepSignedIn) {
+    //         navigate('/home')
+    //     }
+    // }, [])
 
     function changeForm(event: ChangeEvent<HTMLInputElement>) {
         const {name, value} = event.target
@@ -37,6 +37,7 @@ export default function Login() {
             keepSignedIn: keepSignedIn
         })
         .then(() => {
+            localStorage.setItem('signedIn', 'true')
             navigate('/home')
         })
         .catch(() => {
