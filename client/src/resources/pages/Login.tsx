@@ -1,7 +1,6 @@
-import {FormEvent, useState, ChangeEvent} from 'react';
+import {FormEvent, useState, useEffect, ChangeEvent} from 'react';
 import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
-import './login.css';
 
 export default function Login() {
     const [user, setUser] = useState({
@@ -14,20 +13,28 @@ export default function Login() {
     })
     const [onLogin, setOnLogin] = useState(true)
     const [failedLogin, setFailedLogin] = useState(false)
+    const [keepSignedIn, setKeepSignedIn] = useState(false)
 
     const navigate = useNavigate()
+
+    useEffect(() => {
+        if (keepSignedIn) {
+            navigate('/home')
+        }
+    }, [])
 
     function changeForm(event: ChangeEvent<HTMLInputElement>) {
         const {name, value} = event.target
         setUser({...user, [name]: value})
     }
 
-  function handleLogin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+    function handleLogin(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
 
-        axios.post(`${import.meta.env.VITE_BACKEND_URL}/login`, {
+        axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
             username: user.username,
-            password: user.password
+            password: user.password,
+            keepSignedIn: keepSignedIn
         })
         .then(() => {
             navigate('/home')
@@ -40,7 +47,13 @@ export default function Login() {
     function handleSignup(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
-        alert("Signup successful! Please login.")
+        axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/register`, user)
+        .then(() => {
+            navigate('/login')
+        })
+        .catch(() => {
+            alert('Failed to register user')
+        })
         setOnLogin(true)
     }
 
