@@ -38,7 +38,7 @@ const MONGO_PASSWORD=process.env.MONGO_INITDB_ROOT_PASSWORD;
 const MONGO_INTIDB_DATABASE=process.env.MONGO_INTIDB_DATABASE;
 
 const SERVER_HOST=process.env.SERVER_HOST;
-const SERVER_PORT = process.env.SERVER_PORT || 8080; 
+const SERVER_PORT = process.env.SERVER_PORT; 
 //#endregion
 
 const MONGO_URI = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}`;
