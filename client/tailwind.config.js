@@ -9,6 +9,9 @@ export default {
       fontFamily: {
         sans: ["sans-serif", "Inter"],
       },
+      borderRadius: {
+        "4xl": "2rem",
+      },
     },
   },
   plugins: [],

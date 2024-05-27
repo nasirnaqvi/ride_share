@@ -4,7 +4,8 @@
 
 @layer components {
     .input-field {
-        @apply mb-3 p-2 rounded-md bg-opacity-30 font-bold bg-gray-200 text-black focus:outline-none focus:ring-2 focus:ring-blue-600;
+        @apply mb-3 p-2 bg-opacity-30 font-bold bg-gray-200 text-black focus:outline-none focus:ring-2 focus:ring-blue-600;
+        border-radius: 2rem;
     }
 
     .bg-blur {
@@ -19,7 +20,8 @@
     }
 
     .form-submit {
-        @apply m-4 p-2 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600;
+        @apply m-4 p-2 bg-blue-500 text-white font-bold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600;
+        border-radius: 2rem;
     }
 
     .login-signin {
