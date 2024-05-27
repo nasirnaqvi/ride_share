@@ -1,74 +1,162 @@
-import {FormEvent, useState, useEffect} from 'react';
+import {FormEvent, useState, ChangeEvent} from 'react';
 import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
 
 export default function Login() {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [isAuthenticated, setIsAuthenticated] = useState(false)
+    const [user, setUser] = useState({
+        username: '',
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: ''
+    
+    })
+    const [onLogin, setOnLogin] = useState(true)
+    const [failedLogin, setFailedLogin] = useState(false)
 
     const navigate = useNavigate()
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate('/home')
-        }
-    }, [isAuthenticated])
+    function changeForm(event: ChangeEvent<HTMLInputElement>) {
+        const {name, value} = event.target
+        setUser({...user, [name]: value})
+    }
 
     function handleLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
         axios.post(`${import.meta.env.VITE_BACKEND_URL}/login`, {
-            username,
-            password
+            username: user.username,
+            password: user.password
         })
         .then(() => {
-            setIsAuthenticated(true)
+            navigate('/home')
         })
         .catch(() => {
-            alert("Username or password is incorrect.")
+            setFailedLogin(true)
         })
     }
 
+    function handleSignup(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
+
+        alert("Signup successful! Please login.")
+        setOnLogin(true)
+    }
+
     return (
-        <div className="flex h-screen pt-32 justify-center">
+        <div className="flex h-screen w-screen pt-32 justify-center font-sans bg-blur">
             <div className="mt-20 mr-10">
-                <h1 className="text-3xl mr-auto">ride share</h1>
-                <h2 className="text-xl mr-auto">For all your travel needs</h2>
+                <h1 className="text-5xl font-bold text-blue-600 mr-auto">ride share</h1>
+                <h2 className="text-md mr-auto roll-in-left">For all your travel needs</h2>
             </div>
             <div 
-                style={{backgroundImage: "url(https://newyorkrentalbyowner.com/blog/wp-content/uploads/2019/09/Skiing-in-Upstate-New-York-10-Best-Ski-Resorts-For-Your-Winter-Vacation.jpeg)"}}
-                className="flex items-center justify-center w-1/5 h-4/6 bg-cover bg-center bg-no-repeat rounded-lg shadow-lg"
+                className="flex flex-col justify-center form-background w-1/4 h-4/5 rounded-lg shadow-lg"
             >
-                <form 
-                    onSubmit={handleLogin}
-                    className="flex flex-col p-4 w-full overflow-hidden"
-                >  
-                    <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
-                    <input
-                        className="mb-3 p-2 rounded-md opacity-40 font-bold bg-gray-200 text-black focus:outline-none focus:ring-2 focus:ring-blue-600" 
-                        type="text" 
-                        id="username" 
-                        name="username"
-                        value={username} 
-                        onChange={(e) => setUsername(e.target.value)} 
-                    />
-                    <label htmlFor="password" className="text-white font-bold text-xs">PASSWORD</label>
-                    <input 
-                        className="p-2 rounded-md opacity-40 font-bold bg-gray-200 text-black focus:outline-none focus:ring-2 focus:ring-blue-600"
-                        type="password" 
-                        id="password"
-                        name="password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                    />
-                    <button 
-                        type="submit"
-                        className="m-4 p-2 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                <div className="flex ml-4 text-xl">
+                    <button
+                        onClick={() => setOnLogin(true)}  
+                        className={onLogin ? "login-signin" : "login-signin-dark"}  
                     >
-                        Login
+                        LOG IN
                     </button>
-                </form>
+                    <button
+                        onClick={() => setOnLogin(false)}
+                        className={onLogin ? "login-signin-dark" : "login-signin"}
+                    >
+                        SIGN UP
+                    </button>
+                </div>
+                {onLogin ? 
+                    <form 
+                        onSubmit={handleLogin}
+                        className="flex flex-col p-4 w-full overflow-auto"
+                    >  
+                        <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
+                        <input
+                            className="input-field" 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            value={user.username} 
+                            onChange={changeForm} 
+                        />
+                        <label htmlFor="password" className="text-white font-bold text-xs">PASSWORD</label>
+                        <input 
+                            className="input-field"
+                            type="password" 
+                            id="password"
+                            name="password" 
+                            value={user.password} 
+                            onChange={changeForm}
+                        />
+                        <section className="flex justify-center">
+                            {failedLogin && <p className="text-gray-900 p-2 font-bold bg-red-500 bg-opacity-50 rounded-md mb-4">Username or password is incorrect.</p>}
+                        </section>
+                        <button 
+                            type="submit"
+                            className="form-submit"
+                        >
+                            LOGIN
+                        </button>
+                    </form>
+                    :
+                    <form 
+                        onSubmit={handleSignup}
+                        className="flex flex-col p-4 w-full overflow-auto"
+                    >  
+                        <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
+                        <input
+                            className="input-field" 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            value={user.username} 
+                            onChange={changeForm} 
+                        />
+                        <label htmlFor="first-name" className="text-white font-bold text-xs">FIRST NAME</label>
+                        <input 
+                            className="input-field"
+                            type="text" 
+                            id="first-name"
+                            name="firstName" 
+                            value={user.firstName} 
+                            onChange={changeForm} 
+                        />
+                        <label htmlFor="last-name" className="text-white font-bold text-xs">LAST NAME</label>
+                        <input 
+                            className="input-field"
+                            type="text" 
+                            id="last-name"
+                            name="lastName" 
+                            value={user.lastName} 
+                            onChange={changeForm}
+                        />
+                        <label htmlFor="email" className="text-white font-bold text-xs">EMAIL</label>
+                        <input 
+                            className="input-field"
+                            type="email" 
+                            id="email"
+                            name="email" 
+                            value={user.email} 
+                            onChange={changeForm} 
+                        />
+                        <label htmlFor="password" className="text-white font-bold text-xs">PASSWORD</label>
+                        <input 
+                            className="input-field"
+                            type="password" 
+                            id="password"
+                            name="password" 
+                            value={user.password} 
+                            onChange={changeForm} 
+                        />
+                        <button 
+                            type="submit"
+                            className="form-submit"
+                        >
+                            SIGN UP
+                        </button>
+                    </form>
+                }
             </div>
         </div>
     )
