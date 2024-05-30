@@ -1,79 +1,69 @@
-//Normal imports
-const express = require('express');
-const mongoose = require('mongoose');
-const MongoClient = require('mongodb').MongoClient;
-const cors = require('cors');  
-const http = require('http');
+//#region imports
+const express = require('express'); 
+const pgp = require('pg-promise')(); 
+const bodyParser = require('body-parser');
 const session = require('express-session'); 
+const bcrypt = require('bcrypt');
+const path = require('path');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const socketIO = require('socket.io');
+const http = require('http');
+const cors = require('cors');
 const crypto = require('crypto');
-
-//Importing models
-const UserSchema = require('./models/user.model.js');
+//#endregion 
 
 //Importing routes
-const authRoutes = require('./routes/authRoutes.js');
+// const authRoutes = require('./routes/authRoutes.js');
+// const tripRoutes = require('./routes/tripRoutes.js');
+// const db = require('./controllers/db.js');
 
-//Importing init_data
-const init_data = require('./init_data.js');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static('website'));
-app.use(
-  session({
-    secret: crypto.randomBytes(32).toString('hex'),
-    saveUninitialized: false,
-    resave: false,
-  })
-);
+const server = http.createServer(app);
+const io = socketIO(server);
 
-//#region Environment Variables
-const MONGO_HOST=process.env.MONGO_HOST;
-const MONGO_PORT=process.env.MONGO_PORT;
-const MONGO_COLLECTION=process.env.MONGO_COLLECTION;
 
-const MONGO_USERNAME=process.env.MONGO_INITDB_ROOT_USERNAME;
-const MONGO_PASSWORD=process.env.MONGO_INITDB_ROOT_PASSWORD;
-const MONGO_INTIDB_DATABASE=process.env.MONGO_INTIDB_DATABASE;
+const SERVER_HOST = process.env.SERVER_HOST;
+const SERVER_PORT = process.env.SERVER_PORT;
 
-const SERVER_HOST=process.env.SERVER_HOST;
-const SERVER_PORT = process.env.SERVER_PORT; 
-//#endregion
+// app.use(cors());
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(cookieParser());
+// app.use(express.static(path.join(__dirname, 'website')));
 
-const MONGO_URI = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}`;
-// const URI = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/`;
-// const MONGO_URI = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@localhost:${MONGO_PORT}/`;
+// app.use(express.static('website'));
+// app.use(express.json());
 
-console.log(MONGO_URI);
-const client = new MongoClient(MONGO_URI);
-const db = client.db(MONGO_INTIDB_DATABASE);
-const collection = db.collection(MONGO_COLLECTION);
+//#region Routes
 
-//#region Mongo Client
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
-})
-.then(() => {
-  console.log('Connected to MongoDB');
 
-  // Middleware
-  app.use(express.static('website'));
-  app.use(express.json());
-  
-  //#region Routes
-  app.use('/auth', authRoutes(mongoose, UserSchema));
-  //#endregion
+// app.use(
+//   session({
+//     secret: crypto.randomBytes(32).toString('hex'),
+//     saveUninitialized: false,
+//     resave: false,
+//   })
+// );
 
-  // Start the server
-  app.listen(SERVER_PORT, () => {
-    console.log(`Server is running on port ${SERVER_PORT}`);
-  });
+// app.use('/auth', authRoutes);
+// app.use('/trip', tripRoutes);
 
-})
-.catch(err => {
-  console.error('Failed to connect to MongoDB:', err);
+// //#region Middleware for Authentication
+// const authenticateToken = (req, res, next) => {
+//   const token = req.cookies.token;
+//   if (!token) return res.sendStatus(403);
+
+//   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+//     if (err) return res.sendStatus(403);
+//     req.user = user;
+//     next();
+//   });
+// };
+
+
+
+server.listen(SERVER_PORT, () => {
+  console.log(`Server is running on port ${SERVER_PORT}`);
 });
-//#endregion
