@@ -1,6 +1,7 @@
-import {FormEvent, useState, useEffect, ChangeEvent} from 'react';
-import {useNavigate} from 'react-router-dom';
+import React, { FormEvent, useState, useEffect, ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+
 
 export default function Login() {
     const [user, setUser] = useState({
@@ -57,6 +58,17 @@ export default function Login() {
         setOnLogin(true)
     }
 
+    // function loginWithGoogle() {
+    //     axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/google`)
+    //     .then(() => {
+    //         navigate('/home')
+    //     })
+    //     .catch(() => {
+    //         alert('Failed to login with Google')
+    //     })
+
+    // }
+
     return (
         <div className="flex h-screen w-screen pt-32 justify-center font-sans bg-blur">
             <div className="mt-20 mr-10">
@@ -83,7 +95,7 @@ export default function Login() {
                 {onLogin ? 
                     <form 
                         onSubmit={handleLogin}
-                        className="flex flex-col p-4 w-full overflow-auto"
+                        className="flex flex-col p-4 w-full "
                     >  
                         <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
                         <input
@@ -116,7 +128,7 @@ export default function Login() {
                     :
                     <form 
                         onSubmit={handleSignup}
-                        className="flex flex-col p-4 w-full overflow-auto"
+                        className="flex flex-col p-4 w-full "
                     >  
                         <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
                         <input
@@ -171,7 +183,17 @@ export default function Login() {
                         </button>
                     </form>
                 }
+                {/* <div className="flex justify-center h-screen">
+                    <div className="max-w-md w-full bg-clear rounded-lg p-2">
+                        <a href="/auth/google" className="bg-red-400 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center hover:bg-blue-700 transition duration-300">
+                            Log In With Google
+                        </a>
+                    </div>
+                </div> */}
+
             </div>
+
+
         </div>
     )
 }

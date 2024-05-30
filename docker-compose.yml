@@ -8,10 +8,11 @@ services:
     env_file: .env
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
+    expose:
+      - ${SERVER_PORT}
     depends_on:
-      - mongo
-    # environment:
-    #   - MONGO_URI=mongodb://mongo:27017/database
+      - postgres
+        # condition: service_healthy    
     volumes:
       - type: bind
         source: ./server/src
@@ -32,20 +33,48 @@ services:
       - type: bind
         source: ./client/public
         target: /app/public
-    environment:
-      - VITE_BACKEND_URL=http://localhost:8080
+    env_file: .env
     depends_on:
       - server
+    # networks:
+    #   - app-network
     command: npm run dev
-      
-  mongo:
-    container_name: ${MONGO_HOST}
+
+  postgres:
+    container_name: ${POSTGRES_HOST}
+    image: postgres:latest
     env_file: .env
-    image: mongo:latest
     ports:
-      - ${MONGO_PORT}:${MONGO_PORT}
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
-      - mongodata:/data/db
+      - ride_share:/var/lib/postgresql/data
+      - ./server/src/config/init_data:/docker-entrypoint-initdb.d
+    # healthcheck:
+    #   test: [ "CMD-SHELL", "pg_isready" ]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 5
+    # environment:
+    #   - PGPASSWORD=${POSTGRES_PASSWORD}
+    #   - PGPORT=${POSTGRES_PORT}
+    #   - PGHOST=${POSTGRES_HOST}
+    #   - PGUSER=${POSTGRES_USER}
+    #   - PGDATABASE=${POSTGRES_DATABASE}
+
 volumes:
-  mongodata:
-    name: "mongodata"
+  ride_share:
+
+# ngrok:
+#   container_name: ${NGROK_HOST}
+#   image: ngrok/ngrok:latest
+#   command: ngrok http client:${CLIENT_PORT}
+#   env_file: .env
+#   ports:
+#     - "4040:4040"
+#   networks:
+#     - app-network
+#   depends_on:
+#     - client
+# networks:
+#   app-network:
+#     driver: bridge
