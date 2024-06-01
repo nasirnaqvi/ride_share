@@ -36,7 +36,8 @@ export default function Login() {
             username: user.username,
             password: user.password,
             keepSignedIn: keepSignedIn
-        })
+        },
+        {withCredentials: true})
         .then(() => {
             navigate('/home')
         })

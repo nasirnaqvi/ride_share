@@ -1,16 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-// import Map, {GeolocateControl} from 'react-map-gl';
-// import 'mapbox-gl/dist/mapbox-gl.css';
+import Map, {GeolocateControl} from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+interface trip {
+  trip_id: number,
+  driver_id: string,
+  destination: string,
+  original_location: string,
+  active: boolean,
+  payment_req: boolean,
+  leaving_time: Date,
+  max_passengers: number | null,
+  current_passengers: number,
+  status: 'accepted' | 'pending' | 'declined' | null,
+}
+
+
+
 
 export default function Home() {
   const search = () => {
     // Your search logic here
   };
 
-  const [friendTrips, setFriendTrips] = useState([]);
-  const [publicTrips, setPublicTrips] = useState([]);
-
+  const [friendTrips, setFriendTrips] = useState<trip[]>([]);
+  const [publicTrips, setPublicTrips] = useState<trip[]>([]);
+  
 
   const [location, setLocation] = useState<[number, number]>([37.8, -122.4]); // [latitude, longitude]
   //Runs everytime page is rendered
@@ -36,26 +51,41 @@ export default function Home() {
     };
   }, []);
 
-  const fetchData = async () => {
-    try {
-      console.log("attempting to fetch data");
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTrips`);
-      const { accepted, others } = response.data;
-      setFriendTrips(accepted);
-      setPublicTrips(others);
-      console.log("response is ", response.data);
-      console.log("accepted is ", accepted);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
 
     //Run on every render, the dependency array with state means that the code will run everytime this component mounts as well as when these state variables change and the value will be captured by the
-    useEffect
     useEffect(() => {
-      fetchData();
+
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTrips`, {withCredentials: true});
+        const {friend_trips, public_trips } = response.data;
+
+        setFriendTrips(friend_trips);
+        setPublicTrips(public_trips);
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
     }, []);
+
+    const tripList = friendTrips != undefined ? (
+      friendTrips.map((trip, index) => (
+        <div 
+          key={index} 
+          id="tripMembers" 
+          className="p-2 bg-white border border-grey-300 mb-2 rounded-lg">
+          <h3>"Destination " {trip.destination}</h3>
+          {/* <p>{trip.description}</p>
+          <p><strong>Driver:</strong> {trip.driver_name}</p>
+          <p><strong>Date:</strong> {trip.date}</p> */}
+        </div>
+      ))
+    ) : (
+      <p>No friend trips available.</p>
+    );
+
 
   console.log("being called again");
   return (
@@ -66,7 +96,7 @@ export default function Home() {
           <button id="search-button" onClick={search} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-r-full">Search</button>
         </div>
 
-        {/* <div id="map" className="w-full h-full">
+        <div id="map" className="w-full h-full">
           <Map
             mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
             initialViewState={{
@@ -83,34 +113,17 @@ export default function Home() {
               showUserLocation={true}
             />
           </Map>
-        </div> */}
+        </div>
       </div>
       <div id="panel" className="bg-white-200 p-4 w-1/4 overflow-auto">
-        <div id="inset-panel" className="p-4 bg-gray-200 h-full overflow-auto">
           <ul>
-          { friendTrips != undefined ? (
-          friendTrips.map((trip, index) => (
-            <div 
-              key={index} 
-              id="tripMembers" 
-              className="p-2 bg-white border border-grey-300 mb-2"
-            >
-              <h3>{trip.destination}</h3>
-              {/* <p>{trip.description}</p>
-              <p><strong>Driver:</strong> {trip.driver_name}</p>
-              <p><strong>Date:</strong> {trip.date}</p> */}
-            </div>
-          ))
-        ) : (
-          <p>No friend trips available.</p>
-        )}
+            {tripList}
           </ul>
           {/* <ul>
             {publicTrips.map((item) => (
               <div id="tripMembers"></div>
             ))}
           </ul> */}
-        </div>
 
     </div>
 </div>

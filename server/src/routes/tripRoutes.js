@@ -46,7 +46,7 @@ module.exports = function () {
             SELECT 
                 json_build_object(
                     'friend_trips', json_agg(friend_trips),
-                    'others', json_agg(other_trips)
+                    'public_trips', json_agg(other_trips)
                 )
             FROM 
                 friend_trips,
@@ -56,6 +56,7 @@ module.exports = function () {
             // Execute the query
             const item = await db.query(query, [req.session.username]);
             // Send the response
+            console.log(item[0].json_build_object);
             res.status(200).json(item[0].json_build_object);
         } catch (error) {
             console.error('Error fetching trips:', error);
