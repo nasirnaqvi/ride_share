@@ -1,12 +1,14 @@
-import {FormEvent, useState, useEffect, ChangeEvent} from 'react';
-import {useNavigate} from 'react-router-dom';
+import React, { FormEvent, useState, useEffect, ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+
 
 interface LoginProps {
     setSignedIn: () => void
 }
 
 export default function Login(props: LoginProps) {
+
     const [user, setUser] = useState({
         username: '',
         firstName: '',
@@ -17,15 +19,9 @@ export default function Login(props: LoginProps) {
     })
     const [onLogin, setOnLogin] = useState(true)
     const [failedLogin, setFailedLogin] = useState(false)
-    const [keepSignedIn, setKeepSignedIn] = useState(false)
+    const [keepSignedIn, setKeepSignedIn] = useState(true)
 
     const navigate = useNavigate()
-
-    // useEffect(() => {
-    //     if (keepSignedIn) {
-    //         navigate('/home')
-    //     }
-    // }, [])
 
     function changeForm(event: ChangeEvent<HTMLInputElement>) {
         const {name, value} = event.target
@@ -33,13 +29,14 @@ export default function Login(props: LoginProps) {
     }
 
     function handleLogin(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+        event.preventDefault();  
 
         axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
             username: user.username,
             password: user.password,
             keepSignedIn: keepSignedIn
-        })
+        },
+        {withCredentials: true})
         .then(() => {
             props.setSignedIn()
             navigate('/home')
@@ -61,6 +58,17 @@ export default function Login(props: LoginProps) {
         })
         setOnLogin(true)
     }
+
+    // function loginWithGoogle() {
+    //     axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/google`)
+    //     .then(() => {
+    //         navigate('/home')
+    //     })
+    //     .catch(() => {
+    //         alert('Failed to login with Google')
+    //     })
+
+    // }
 
     return (
         <div className="flex mt-24 w-screen justify-center font-sans">
@@ -88,7 +96,7 @@ export default function Login(props: LoginProps) {
                 {onLogin ? 
                     <form 
                         onSubmit={handleLogin}
-                        className="flex flex-col p-4 w-full overflow-auto"
+                        className="flex flex-col p-4 w-full "
                     >  
                         <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
                         <input
@@ -121,7 +129,7 @@ export default function Login(props: LoginProps) {
                     :
                     <form 
                         onSubmit={handleSignup}
-                        className="flex flex-col p-4 w-full overflow-auto"
+                        className="flex flex-col p-4 w-full "
                     >  
                         <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
                         <input
@@ -176,7 +184,17 @@ export default function Login(props: LoginProps) {
                         </button>
                     </form>
                 }
+                {/* <div className="flex justify-center h-screen">
+                    <div className="max-w-md w-full bg-clear rounded-lg p-2">
+                        <a href="/auth/google" className="bg-red-400 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center hover:bg-blue-700 transition duration-300">
+                            Log In With Google
+                        </a>
+                    </div>
+                </div> */}
+
             </div>
+
+
         </div>
     )
 }

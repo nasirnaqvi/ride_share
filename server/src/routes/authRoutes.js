@@ -3,6 +3,13 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const axios  = require('axios');
+// const passport = require('passport');
+
+const db = require('./../controllers/db.js');
+
+axios.default.withCredentials = true;
+
 
 /* Status codes
 Logins:
@@ -32,32 +39,51 @@ Else Login codes => Login page showSignUpPanel = false, message = "User does not
 
 const jwtSecret = crypto.randomBytes(32).toString('hex');
 
-module.exports = function(client, User) {
+module.exports = function (sessionSecret) {
+
+  // router.get('/auth/google', passport.authenticate('google', { scope: ['profile','email'] }))
+
+
+  // router.get('google/callback', 
+  //   passport.authenticate('google', 
+  //   { failureRedirect: '/login' }),
+  //   (req, res) => {
+  //     res.redirect('/log');
+  //   });
+
   // Login post call
   router.post("/login", async (req, res) => {
+    console.log(req.body);
     try {
-      const user = await User.findOne({ username: req.body.username });
-      if (!user) {
-        return res.status(401).json({ showSignUpPanel: false, message: "User does not exist" });
-      }
+      const usernameQuery = `SELECT * FROM users WHERE users.username = $1`;
+      const data = await db.one(usernameQuery, [req.body.username]);
+      const password = data.password;
+      const match = await bcrypt.compare(req.body.password, password);
   
-      const match = await bcrypt.compare(req.body.password, user.password);
       if (match) {
+        // Authentication successful
         const tokenPayload = {
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
+          username: req.body.username,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
           keepSignedIn: req.body.keepSignedIn,
         };
-  
-        const token = jwt.sign(tokenPayload, jwtSecret, { expiresIn: '1h' });
-        res.cookie('authtoken', token, { httpOnly: true });
-
-        req.session.keepSignedIn = req.body.keepSignedIn;
-        console.log("Login successful");
+        if (req.body.keepSignedIn) {
+          const token = jwt.sign(tokenPayload, sessionSecret, { expiresIn: '1h' }); 
+          res.cookie('authtoken', token, { httpOnly: true, maxAge: 3600000 }); // Set maxAge in milliseconds
+        } else {
+          // If keepSignedIn is not checked, clear any existing token
+          res.clearCookie('authtoken');
+        }
+        
+        // Set session data
+        req.session.username = req.body.username;
+        console.log("Session username is ", req.session.username);
+        
         return res.status(200).json({ message: "Login successful" });
       } else {
+        // Authentication failed
         return res.status(401).json({ showSignUpPanel: false, message: "Invalid password" });
       }
     } catch (err) {
@@ -66,40 +92,44 @@ module.exports = function(client, User) {
     }
   });
   
+
   // Register post call
   router.post("/register", async (req, res) => {
     const { username, password, email, firstName, lastName } = req.body;
-  
+    console.log("Registration attempted for user: " + username + " with email: " + email + " and name: " + firstName + " " + lastName + " at " + new Date().toLocaleString());
+    
     if (!username || !password || !email || !firstName || !lastName) {
       return res.status(400).json({ message: "All fields are required" });
     }
   
     try {
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
+      // Check if user already exists
+      const existingUserQuery = 'SELECT * FROM users WHERE username = $1';
+      const existingUserResult = await db.query(existingUserQuery, [username]);
+      console.log("ITEM IS ", existingUserResult);
+      if (existingUserResult.length > 0) {
         return res.status(409).json({ message: "User already exists" });
       }
   
+      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-      const newUser = new User({
-        username,
-        password: hashedPassword,
-        email,
-        firstName,
-        lastName,
-        createdAt: new Date(),
-        tripsTaken: 0
-      });
   
-      await newUser.save();
-      console.log("Registration successful for user: " + username + " with email: " + email + " and name: " + firstName + " " + lastName + " at " + new Date().toLocaleString());
+      // Insert new user into the database
+      const insertUserQuery = `
+        INSERT INTO users (username, password, email, first_name, last_name, created_at, trips_taken)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `;
+      const values = [username, hashedPassword, email, firstName, lastName, new Date(), 0];
+      await db.query(insertUserQuery, values);
+  
+      console.log("Registration successful");
       res.status(201).json({ showSignUpPanel: false, message: "Registration successful" });
     } catch (err) {
       console.error(err);
       res.status(500).json({ showSignUpPanel: true, message: "Registration failed" });
     }
   });
-  
+
 
   // Keep-signed-in check
   router.get('/keep-signed-in', (req, res) => {

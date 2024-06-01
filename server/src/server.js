@@ -1,79 +1,87 @@
-//Normal imports
-const express = require('express');
-const mongoose = require('mongoose');
-const MongoClient = require('mongodb').MongoClient;
-const cors = require('cors');  
-const http = require('http');
+//#region imports
+const express = require('express'); 
+const pgp = require('pg-promise')(); 
+const bodyParser = require('body-parser');
 const session = require('express-session'); 
+const bcrypt = require('bcrypt');
+const path = require('path');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const socketIO = require('socket.io');
+const http = require('http');
+const cors = require('cors');
 const crypto = require('crypto');
-
-//Importing models
-const UserSchema = require('./models/user.model.js');
+const pg = require('pg');
+//#endregion 
 
 //Importing routes
 const authRoutes = require('./routes/authRoutes.js');
+const tripRoutes = require('./routes/tripRoutes.js');
+const db = require('./controllers/db.js');
 
-//Importing init_data
-const init_data = require('./init_data.js');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const server = http.createServer(app);
+const io = socketIO(server);
+
+
+const SERVER_HOST = process.env.SERVER_HOST;
+const SERVER_PORT = process.env.SERVER_PORT;
+
+app.use(cors({ origin: `http://localhost:${process.env.CLIENT_PORT}`, credentials: true }));
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', `http://localhost:${process.env.CLIENT_PORT}`);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
+
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'website')));
+
 app.use(express.static('website'));
+app.use(express.json());
+
+const sessionSecret = crypto.randomBytes(32).toString('hex');
+
 app.use(
   session({
-    secret: crypto.randomBytes(32).toString('hex'),
+    secret: sessionSecret,
     saveUninitialized: false,
     resave: false,
   })
 );
 
-//#region Environment Variables
-const MONGO_HOST=process.env.MONGO_HOST;
-const MONGO_PORT=process.env.MONGO_PORT;
-const MONGO_COLLECTION=process.env.MONGO_COLLECTION;
+app.use((req, res, next) => { //Runs everytime a request occurs
+  // Example: Log request method and URL
+  console.log("\n-------------------");
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  const authToken = req.cookies.authtoken;
+  if (authToken) {
 
-const MONGO_USERNAME=process.env.MONGO_INITDB_ROOT_USERNAME;
-const MONGO_PASSWORD=process.env.MONGO_INITDB_ROOT_PASSWORD;
-const MONGO_INTIDB_DATABASE=process.env.MONGO_INTIDB_DATABASE;
-
-const SERVER_HOST=process.env.SERVER_HOST;
-const SERVER_PORT = process.env.SERVER_PORT; 
-//#endregion
-
-const MONGO_URI = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}`;
-// const URI = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/`;
-// const MONGO_URI = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@localhost:${MONGO_PORT}/`;
-
-console.log(MONGO_URI);
-const client = new MongoClient(MONGO_URI);
-const db = client.db(MONGO_INTIDB_DATABASE);
-const collection = db.collection(MONGO_COLLECTION);
-
-//#region Mongo Client
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
-})
-.then(() => {
-  console.log('Connected to MongoDB');
-
-  // Middleware
-  app.use(express.static('website'));
-  app.use(express.json());
-  
-  //#region Routes
-  app.use('/auth', authRoutes(mongoose, UserSchema));
-  //#endregion
-
-  // Start the server
-  app.listen(SERVER_PORT, () => {
-    console.log(`Server is running on port ${SERVER_PORT}`);
-  });
-
-})
-.catch(err => {
-  console.error('Failed to connect to MongoDB:', err);
+  }
+  console.log(authToken);
+  console.log("-------------------\n");
+  // Proceed to the next middleware/route handler
+  next();
 });
-//#endregion
+
+
+
+app.use('/auth', authRoutes(sessionSecret));
+app.use('/trip', tripRoutes());
+
+
+app.get('/currSession', (req, res) => {
+  res.status(200).json({ username: req.session.username });
+});
+
+
+server.listen(SERVER_PORT, () => {
+  console.log(`Server is running on port ${SERVER_PORT}`);
+});
