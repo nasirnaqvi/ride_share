@@ -14,14 +14,14 @@ export default function Login() {
     })
     const [onLogin, setOnLogin] = useState(true)
     const [failedLogin, setFailedLogin] = useState(false)
-    const [keepSignedIn, setKeepSignedIn] = useState(false)
+    const [keepSignedIn, setKeepSignedIn] = useState(true)
 
     const navigate = useNavigate()
 
     useEffect(() => {
-        if (keepSignedIn) {
-            navigate('/home')
-        }
+        // if (keepSignedIn) {
+        //     navigate('/home')
+        // }
     }, [])
 
     function changeForm(event: ChangeEvent<HTMLInputElement>) {
@@ -30,7 +30,7 @@ export default function Login() {
     }
 
     function handleLogin(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+        event.preventDefault();  
 
         axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
             username: user.username,

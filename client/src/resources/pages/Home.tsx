@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 // import Map, {GeolocateControl} from 'react-map-gl';
 // import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -7,7 +8,9 @@ export default function Home() {
     // Your search logic here
   };
 
-  const [trips, setTrips] = useState([]);
+  const [friendTrips, setFriendTrips] = useState([]);
+  const [publicTrips, setPublicTrips] = useState([]);
+
 
   const [location, setLocation] = useState<[number, number]>([37.8, -122.4]); // [latitude, longitude]
   //Runs everytime page is rendered
@@ -33,20 +36,27 @@ export default function Home() {
     };
   }, []);
 
-  //Run on every render, the dependency array with state means that the code will run everytime this component mounts as well as when these state variables change and the value will be captured by the
-  useEffect
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
-    // try {
-    //   const response = await axios.get('/api/endpoint'); // Replace '/api/endpoint' with your actual backend endpoint
-    //   setTrips(response.data);
-    // } catch (error) {
-    //   console.error('Error fetching data:', error);
-    // }
+    try {
+      console.log("attempting to fetch data");
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTrips`);
+      const { accepted, others } = response.data;
+      setFriendTrips(accepted);
+      setPublicTrips(others);
+      console.log("response is ", response.data);
+      console.log("accepted is ", accepted);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   };
+
+
+    //Run on every render, the dependency array with state means that the code will run everytime this component mounts as well as when these state variables change and the value will be captured by the
+    useEffect
+    useEffect(() => {
+      fetchData();
+    }, []);
+
   console.log("being called again");
   return (
 <div id="main" className="flex overflow-hidden" style={{ width: '100%', height: '100vh' }}>
@@ -56,8 +66,8 @@ export default function Home() {
           <button id="search-button" onClick={search} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-r-full">Search</button>
         </div>
 
-        <div id="map" className="w-full h-full">
-          {/* <Map
+        {/* <div id="map" className="w-full h-full">
+          <Map
             mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
             initialViewState={{
               latitude: location[0],
@@ -72,19 +82,36 @@ export default function Home() {
               trackUserLocation={false}
               showUserLocation={true}
             />
-          </Map> */}
-        </div>
+          </Map>
+        </div> */}
       </div>
-      <div id="panel" className="bg-gray-200 p-4 w-1/4 overflow-auto">
-      <ul>
-        {trips.map((item) => (
-          <li key={item.id} className="mb-2">
-            <div className="bg-white rounded-lg p-2">
-              {item.description}
+      <div id="panel" className="bg-white-200 p-4 w-1/4 overflow-auto">
+        <div id="inset-panel" className="p-4 bg-gray-200 h-full overflow-auto">
+          <ul>
+          { friendTrips != undefined ? (
+          friendTrips.map((trip, index) => (
+            <div 
+              key={index} 
+              id="tripMembers" 
+              className="p-2 bg-white border border-grey-300 mb-2"
+            >
+              <h3>{trip.destination}</h3>
+              {/* <p>{trip.description}</p>
+              <p><strong>Driver:</strong> {trip.driver_name}</p>
+              <p><strong>Date:</strong> {trip.date}</p> */}
             </div>
-          </li>
-        ))}
-      </ul>
+          ))
+        ) : (
+          <p>No friend trips available.</p>
+        )}
+          </ul>
+          {/* <ul>
+            {publicTrips.map((item) => (
+              <div id="tripMembers"></div>
+            ))}
+          </ul> */}
+        </div>
+
     </div>
 </div>
   );

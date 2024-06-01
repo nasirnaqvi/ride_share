@@ -18,6 +18,7 @@ services:
         source: ./server/src
         target: /app/src
     command: npm run dev
+    restart: always
 
   client:
     container_name: ${CLIENT_HOST}
@@ -39,6 +40,7 @@ services:
     # networks:
     #   - app-network
     command: npm run dev
+    restart: always
 
   postgres:
     container_name: ${POSTGRES_HOST}
