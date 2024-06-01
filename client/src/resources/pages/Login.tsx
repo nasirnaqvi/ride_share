@@ -2,7 +2,11 @@ import {FormEvent, useState, useEffect, ChangeEvent} from 'react';
 import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
 
-export default function Login() {
+interface LoginProps {
+    setSignedIn: () => void
+}
+
+export default function Login(props: LoginProps) {
     const [user, setUser] = useState({
         username: '',
         firstName: '',
@@ -17,11 +21,11 @@ export default function Login() {
 
     const navigate = useNavigate()
 
-    useEffect(() => {
-        if (keepSignedIn) {
-            navigate('/home')
-        }
-    }, [])
+    // useEffect(() => {
+    //     if (keepSignedIn) {
+    //         navigate('/home')
+    //     }
+    // }, [])
 
     function changeForm(event: ChangeEvent<HTMLInputElement>) {
         const {name, value} = event.target
@@ -37,6 +41,7 @@ export default function Login() {
             keepSignedIn: keepSignedIn
         })
         .then(() => {
+            props.setSignedIn()
             navigate('/home')
         })
         .catch(() => {
@@ -58,13 +63,13 @@ export default function Login() {
     }
 
     return (
-        <div className="flex h-screen w-screen pt-32 justify-center font-sans bg-blur">
+        <div className="flex mt-24 w-screen justify-center font-sans">
             <div className="mt-20 mr-10">
                 <h1 className="text-5xl font-bold text-blue-600 mr-auto">ride share</h1>
                 <h2 className="text-md mr-auto roll-in-left">For all your travel needs</h2>
             </div>
             <div 
-                className="flex flex-col justify-center form-background w-1/4 h-4/5 rounded-lg shadow-lg"
+                className="flex flex-col justify-center form-background w-1/4 rounded-lg shadow-lg"
             >
                 <div className="flex ml-4 text-xl">
                     <button
