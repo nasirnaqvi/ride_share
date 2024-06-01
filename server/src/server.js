@@ -11,12 +11,13 @@ const socketIO = require('socket.io');
 const http = require('http');
 const cors = require('cors');
 const crypto = require('crypto');
+const pg = require('pg');
 //#endregion 
 
 //Importing routes
-// const authRoutes = require('./routes/authRoutes.js');
-// const tripRoutes = require('./routes/tripRoutes.js');
-// const db = require('./controllers/db.js');
+const authRoutes = require('./routes/authRoutes.js');
+const tripRoutes = require('./routes/tripRoutes.js');
+const db = require('./controllers/db.js');
 
 
 const app = express();
@@ -27,41 +28,58 @@ const io = socketIO(server);
 const SERVER_HOST = process.env.SERVER_HOST;
 const SERVER_PORT = process.env.SERVER_PORT;
 
-// app.use(cors());
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(cookieParser());
-// app.use(express.static(path.join(__dirname, 'website')));
-
-// app.use(express.static('website'));
-// app.use(express.json());
-
-//#region Routes
+app.use(cors());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', `http://localhost:${process.env.CLIENT_PORT}`);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
 
 
-// app.use(
-//   session({
-//     secret: crypto.randomBytes(32).toString('hex'),
-//     saveUninitialized: false,
-//     resave: false,
-//   })
-// );
 
-// app.use('/auth', authRoutes);
-// app.use('/trip', tripRoutes);
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'website')));
 
-// //#region Middleware for Authentication
-// const authenticateToken = (req, res, next) => {
-//   const token = req.cookies.token;
-//   if (!token) return res.sendStatus(403);
+app.use(express.static('website'));
+app.use(express.json());
 
-//   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-//     if (err) return res.sendStatus(403);
-//     req.user = user;
-//     next();
-//   });
-// };
+const sessionSecret = crypto.randomBytes(32).toString('hex');
 
+app.use(
+  session({
+    secret: sessionSecret,
+    saveUninitialized: false,
+    resave: false,
+  })
+);
+
+app.use((req, res, next) => { //Runs everytime a request occurs
+  // Example: Log request method and URL
+  console.log("\n-------------------");
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  const authToken = req.cookies.authtoken;
+  if (authToken) {
+
+  }
+  console.log(authToken);
+  console.log("-------------------\n");
+  // Proceed to the next middleware/route handler
+  next();
+});
+
+
+
+app.use('/auth', authRoutes(sessionSecret));
+app.use('/trip', tripRoutes());
+
+
+app.get('/currSession', (req, res) => {
+  res.status(200).json({ username: req.session.username });
+});
 
 
 server.listen(SERVER_PORT, () => {
