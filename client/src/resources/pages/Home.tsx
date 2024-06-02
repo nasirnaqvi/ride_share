@@ -25,7 +25,7 @@ export default function Home() {
 
   const [friendTrips, setFriendTrips] = useState<trip[]>([]);
   const [publicTrips, setPublicTrips] = useState<trip[]>([]);
-  
+  const[locationChanged, setLocationChanged] = useState<boolean>(false);
 
   const [location, setLocation] = useState<[number, number]>([37.8, -122.4]); // [latitude, longitude]
   //Runs everytime page is rendered
@@ -41,15 +41,44 @@ export default function Home() {
     };
     const options = {
       enableHighAccuracy: true,
-      timeout: 5000,
+      timeout: 3000,
       maximumAge: 0
     };
     navigator.geolocation.getCurrentPosition(successCallback, errorCallback, options);
-  
-    return () => {
-      // Cleanup function if needed
-    };
+    setLocationChanged(true);
   }, []);
+
+  const [mapComponent, setMapComponent] = useState<JSX.Element | null>(null);
+
+  useEffect(() => {
+    if (locationChanged) {
+      const timeoutId = setTimeout(() => {
+        const newMapComponent = (
+          <div></div>
+          // <Map
+          //   mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
+          //   initialViewState={{
+          //     latitude: location[0],
+          //     longitude: location[1],
+          //     zoom: 8
+          //   }}
+          //   mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
+          //   style={{ width: '100%', height: '100%' }}
+          // >
+          //   <GeolocateControl
+          //     positionOptions={{ enableHighAccuracy: true }}
+          //     trackUserLocation={false}
+          //     showUserLocation={true}
+          //   />
+          // </Map>
+        );
+        setMapComponent(newMapComponent);
+      }, 4000);
+
+      // Cleanup function to clear the timeout if the location changes again
+      return () => clearTimeout(timeoutId);
+    }
+  }, [locationChanged]);
 
 
     //Run on every render, the dependency array with state means that the code will run everytime this component mounts as well as when these state variables change and the value will be captured by the
@@ -97,22 +126,7 @@ export default function Home() {
         </div>
 
         <div id="map" className="w-full h-full">
-          <Map
-            mapboxAccessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
-            initialViewState={{
-              latitude: location[0],
-              longitude: location[1],
-              zoom: 8
-            }}
-            mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
-            style={{ width: '100%', height: '100%' }}
-          >
-            <GeolocateControl
-              positionOptions={{ enableHighAccuracy: true }}
-              trackUserLocation={false}
-              showUserLocation={true}
-            />
-          </Map>
+          {mapComponent}
         </div>
       </div>
       <div id="panel" className="bg-white-200 p-4 w-1/4 overflow-auto">

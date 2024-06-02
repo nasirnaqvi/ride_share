@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    .h-screen-70 {
+        height: 70vh;
+    }
+}
+
 
 @layer components {
     .input-field {
@@ -12,7 +18,6 @@
     .form-background {
         background-image: linear-gradient( rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4) ), 
                           url('./resources/assets/login_img.jpeg');
-        height: calc(100vh - 20rem);
         @apply bg-cover bg-center bg-no-repeat;
     }
 
@@ -27,6 +32,14 @@
 
     .login-signin-dark {
         @apply mr-2 text-gray-900 text-2xl font-extrabold focus:outline-none focus:ring-2 focus:ring-blue-600;
+    }
+
+    .main-height {
+        height: calc(100vh - 3.5rem);
+    }
+
+    .trip-card {
+        @apply bg-white rounded-lg shadow-md p-2 ;
     }
 }
 

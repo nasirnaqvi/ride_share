@@ -17,6 +17,7 @@ const pg = require('pg');
 //Importing routes
 const authRoutes = require('./routes/authRoutes.js');
 const tripRoutes = require('./routes/tripRoutes.js');
+const profileRoutes = require('./routes/profileRoutes.js');
 const db = require('./controllers/db.js');
 
 
@@ -75,6 +76,7 @@ app.use((req, res, next) => { //Runs everytime a request occurs
 
 app.use('/auth', authRoutes(sessionSecret));
 app.use('/trip', tripRoutes());
+app.use('/profile', profileRoutes());
 
 
 app.get('/currSession', (req, res) => {
