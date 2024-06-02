@@ -18,11 +18,8 @@ VALUES ('user1', 'Beach Resort', 'City Center', TRUE, TRUE, '2024-06-01 10:00:00
 -- Adding friendships between user1, user3, and user5
 INSERT INTO friendships (user1_id, user2_id, status)
 VALUES ('user1', 'user3', 'accepted'),
-       ('user1', 'user5', 'accepted');
-
--- Adding friendships between user2 and user4
-INSERT INTO friendships (user1_id, user2_id, status)
-VALUES ('user2', 'user4', 'accepted');
+       ('user1', 'user5', 'accepted'),
+       ('user2', 'user4', 'accepted');
 
 -- Demo passenger data for initialization
 INSERT INTO passengers (trip_id, passenger)

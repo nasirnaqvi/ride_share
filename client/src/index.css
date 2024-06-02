@@ -28,6 +28,10 @@
     .login-signin-dark {
         @apply mr-2 text-gray-900 text-2xl font-extrabold focus:outline-none focus:ring-2 focus:ring-blue-600;
     }
+
+    .home-height {
+        height: calc(100vh - 3.5rem);
+    }
 }
 
 @layer utilities {
