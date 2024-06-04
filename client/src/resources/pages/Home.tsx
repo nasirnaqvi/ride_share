@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Linebar from '../components/Linebar';
-import { debounce } from 'lodash';
-import mapboxgl from 'mapbox-gl';
-import { SearchBox } from '@mapbox/search-js-react';
 
+import mapboxgl from 'mapbox-gl';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 interface Driver {
   first_name: string;
@@ -25,12 +24,10 @@ interface Trip {
   driver: Driver; // Nested "driver" interface
 }
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-
 export default function Home() {
 
   //Refs
-  const mapContainerRef = useRef<JSX.Element | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
 
   //States
@@ -42,34 +39,30 @@ export default function Home() {
   const [searchInput, setSearchInput] = useState('');
 
 
-  //#region Location-Tracking
-  //Runs everytime page is rendered
+  // #region Location-Tracking
   // Initialize map when component mounts
   useEffect(() => {
-    console.log('running')
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { longitude, latitude } = position.coords;
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { longitude, latitude } = position.coords;
 
-          // Initialize map if geolocation is provided
-          mapInstanceRef.current = new mapboxgl.Map({
-            container: mapContainerRef.current!,
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: [longitude, latitude],
-            zoom: zoom
-          });
-          mapInstanceRef.current!.on('move', () => {
-            setLng(parseFloat(mapInstanceRef.current!.getCenter().lng.toFixed(4)));
-            setLat(parseFloat(mapInstanceRef.current!.getCenter().lat.toFixed(4)));
-            setZoom(parseFloat(mapInstanceRef.current!.getZoom().toFixed(2)));
-          });
+        // Initialize map if geolocation is provided
+        mapInstanceRef.current = new mapboxgl.Map({
+          container: mapContainerRef.current!,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [longitude, latitude],
+          zoom: zoom
+        });
+        mapInstanceRef.current!.on('move', () => {
+          setLng(parseFloat(mapInstanceRef.current!.getCenter().lng.toFixed(4)));
+          setLat(parseFloat(mapInstanceRef.current!.getCenter().lat.toFixed(4)));
+          setZoom(parseFloat(mapInstanceRef.current!.getZoom().toFixed(2)));
+        });
 
-          setLng(longitude);
-          setLat(latitude);
-        },
-        (error) => console.log(error)
-      );
+        setLng(longitude);
+        setLat(latitude);
+      },
+      (error) => console.log(error));
     } else {
       // Fallback in case geolocation is not supported
       mapInstanceRef.current = new mapboxgl.Map({
@@ -85,9 +78,10 @@ export default function Home() {
       });
     }
   }, []);
-  //#endregion
+  // #endregion
 
-  //#region dates
+
+  // #region dates
   const formatDate = (dateTimeString: string) => {
     const date = new Date(dateTimeString);
     const month = date.toLocaleString('default', { month: 'long' });
@@ -111,16 +105,16 @@ export default function Home() {
     }
   }
 
-  //#endregion
+  // #endregion
 
-  //#region Friend&Public Trips
-  //Run on every render, the dependency array with state means that the code will run everytime this component mounts as well as when these state variables change and the value will be captured by the function
+
+  // Fetch trips data from backend when page loads
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTrips`, {withCredentials: true})
       .then(response => {
         const { friend_trips, public_trips } = response.data;
-        if (friend_trips?.length) setFriendTrips(friend_trips);
-        if (public_trips?.length) setPublicTrips(public_trips);
+        setFriendTrips(friend_trips);
+        setPublicTrips(public_trips);
       })
       .catch(error => {
         console.log(error)
@@ -128,7 +122,8 @@ export default function Home() {
   }, []);
 
 
-  const ftList = friendTrips !== undefined && friendTrips.length > 0 ? (
+  // #region convert trips to JSX
+  const ftList = friendTrips !== null && friendTrips.length > 0 ? (
     friendTrips.map((trip, index) => (
       <button
         key={index}
@@ -147,7 +142,7 @@ export default function Home() {
     <p className="text-center">No friend trips available.</p>
   );
 
-  const ptList = publicTrips !== undefined && publicTrips.length > 0 ? (
+  const ptList = publicTrips !== null && publicTrips.length > 0 ? (
     publicTrips.map((trip, index) => (
       <button
         key={index}
@@ -163,46 +158,29 @@ export default function Home() {
   ) : (
     <p className="text-center">No public trips available.</p>
   );
-  //#endregion
+
+  // #endregion
 
 
-
-
-
-  //#region Search
+  // #region handle search functions
   function handleSearchChange(event: React.ChangeEvent<HTMLInputElement>) {
     setSearchInput(event.target.value);
 
-    setFriendTrips(friendTrips.filter(trip => trip.destination.toLowerCase().includes(event.target.value.toLowerCase())));
-    setPublicTrips(publicTrips.filter(trip => trip.destination.toLowerCase().includes(event.target.value.toLowerCase())));
+    if (friendTrips) {
+      setFriendTrips(friendTrips.filter(trip => trip.destination.toLowerCase().includes(event.target.value.toLowerCase())));
+    }
+    if (publicTrips) {
+      setPublicTrips(publicTrips.filter(trip => trip.destination.toLowerCase().includes(event.target.value.toLowerCase())));
+    }
   }
 
   function handleSearch() {
     console.log('Search input:', searchInput);
   }
 
+  // #endregion
 
-  // const debouncedSetSearchInput = debounce((value: string) => {
-  //   if (value.length > 3) {
-  //     console.log("values greater than 3, searching for: ", value);
-  //     // setSearchBar(      <SearchBox
-  //     //   accessToken={accessToken}
-  //     //   map={mapInstanceRef.current}
-  //     //   mapboxgl={mapboxgl}
-  //     //   value={inputValue}
-  //     //   onChange={setInputValue}
-  //     //   marker
-  //     // />)
-  //   }
-  // }, 1000);
 
-  // useEffect(() => {
-  //   debouncedSetSearchInput(inputValue);
-  //   return () => debouncedSetSearchInput.cancel();
-  // }, [inputValue]);
-  //#endregion
-
-  console.log("being called again");
   return (
     <div id="main" className="flex flex-col md:flex-row overflow-hidden home-height">
       <div id="map-container" className="relative flex-grow overflow-hidden md:w-3/4 w-full">
@@ -213,12 +191,8 @@ export default function Home() {
             placeholder="Where is your next adventure?"
             className="font-serif flex-grow border border-white-300 rounded-l-full py-2 sm:py-3 md:py-4 px-2 sm:px-4 md:px-5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl"
             value={searchInput}
-            onClick={handleSearchChange}
+            onChange={handleSearchChange}
           />
-          <div> 
-
-
-          </div>
           <button
             id="search-button"
             onClick={handleSearch}
@@ -227,16 +201,6 @@ export default function Home() {
             Search
           </button>
         </div>
-        {/* <div>
-        <SearchBox
-        accessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
-        map={mapInstanceRef.current}
-        mapboxgl={mapboxgl}
-        value={inputValue}
-        onChange={setInputValue}
-        marker
-      />
-        </div> */}
         <div id="map" ref={mapContainerRef} className="w-full h-full"></div>
       </div>
       <div id="panel" className="bg-white-200 p-4 md:w-1/4 w-full md:h-auto h-1/4 overflow-auto">
