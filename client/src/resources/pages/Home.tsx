@@ -1,39 +1,50 @@
-import {useRef, useEffect, useState} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-
+import 'mapbox-gl/dist/mapbox-gl.css';
+import Linebar from '../components/Linebar';
+import { debounce } from 'lodash';
 import mapboxgl from 'mapbox-gl';
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
+import { SearchBox } from '@mapbox/search-js-react';
+
+
+interface Driver {
+  first_name: string;
+  last_name: string;
+  trips_taken: string;
+  profile_img: any;
+}
 
 interface Trip {
   trip_id: number;
-  diver_id: string;
   destination: string;
   original_location: string;
   active: boolean;
   payment_req: boolean;
   leaving_time: Date;
-  max_passengers: number;
-  current_passengers: number;
-  friendship_status: string;
-  driver_first_name: string;
-  driver_last_name: string;
-  driver_trips_taken: number;
-  driver_profile_img: string;
   seats_available: number;
+  status: 'accepted' | 'pending' | 'declined' | null;
+  driver: Driver; // Nested "driver" interface
 }
 
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
 export default function Home() {
-  const mapContainer = useRef<HTMLDivElement | null>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+
+  //Refs
+  const mapContainerRef = useRef<JSX.Element | null>(null);
+  const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+
+  //States
+  const [friendTrips, setFriendTrips] = useState<Trip[]>([]);
+  const [publicTrips, setPublicTrips] = useState<Trip[]>([]);
   const [lng, setLng] = useState(-70.9);
   const [lat, setLat] = useState(38.35);
   const [zoom, setZoom] = useState(9);
-  const [friendTrips, setFriendTrips] = useState<Trip[]>([]);
-  const [publicTrips, setPublicTrips] = useState<Trip[]>([]);
   const [searchInput, setSearchInput] = useState('');
 
-  console.log(lng, lat, zoom)
 
+  //#region Location-Tracking
+  //Runs everytime page is rendered
   // Initialize map when component mounts
   useEffect(() => {
     console.log('running')
@@ -43,16 +54,16 @@ export default function Home() {
           const { longitude, latitude } = position.coords;
 
           // Initialize map if geolocation is provided
-          map.current = new mapboxgl.Map({
-            container: mapContainer.current!,
+          mapInstanceRef.current = new mapboxgl.Map({
+            container: mapContainerRef.current!,
             style: 'mapbox://styles/mapbox/streets-v12',
             center: [longitude, latitude],
             zoom: zoom
           });
-          map.current!.on('move', () => {
-            setLng(parseFloat(map.current!.getCenter().lng.toFixed(4)));
-            setLat(parseFloat(map.current!.getCenter().lat.toFixed(4)));
-            setZoom(parseFloat(map.current!.getZoom().toFixed(2)));
+          mapInstanceRef.current!.on('move', () => {
+            setLng(parseFloat(mapInstanceRef.current!.getCenter().lng.toFixed(4)));
+            setLat(parseFloat(mapInstanceRef.current!.getCenter().lat.toFixed(4)));
+            setZoom(parseFloat(mapInstanceRef.current!.getZoom().toFixed(2)));
           });
 
           setLng(longitude);
@@ -62,31 +73,22 @@ export default function Home() {
       );
     } else {
       // Fallback in case geolocation is not supported
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current!,
+      mapInstanceRef.current = new mapboxgl.Map({
+        container: mapContainerRef.current!,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [lng, lat],
         zoom: zoom
       });
-      map.current!.on('move', () => {
-        setLng(parseFloat(map.current!.getCenter().lng.toFixed(4)));
-        setLat(parseFloat(map.current!.getCenter().lat.toFixed(4)));
-        setZoom(parseFloat(map.current!.getZoom().toFixed(2)));
+      mapInstanceRef.current!.on('move', () => {
+        setLng(parseFloat(mapInstanceRef.current!.getCenter().lng.toFixed(4)));
+        setLat(parseFloat(mapInstanceRef.current!.getCenter().lat.toFixed(4)));
+        setZoom(parseFloat(mapInstanceRef.current!.getZoom().toFixed(2)));
       });
     }
   }, []);
+  //#endregion
 
-  useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTrips`, {withCredentials: true})
-      .then(response => {
-        setFriendTrips(response.data.friend_trips);
-        setPublicTrips(response.data.public_trips);
-      })
-      .catch(error => {
-        console.log(error)
-      })
-  }, []);
-
+  //#region dates
   const formatDate = (dateTimeString: string) => {
     const date = new Date(dateTimeString);
     const month = date.toLocaleString('default', { month: 'long' });
@@ -110,6 +112,65 @@ export default function Home() {
     }
   }
 
+  //#endregion
+
+  //#region Friend&Public Trips
+  //Run on every render, the dependency array with state means that the code will run everytime this component mounts as well as when these state variables change and the value will be captured by the function
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTrips`, {withCredentials: true})
+      .then(response => {
+        const { friend_trips, public_trips } = response.data;
+        if (friend_trips?.length) setFriendTrips(friend_trips);
+        if (public_trips?.length) setPublicTrips(public_trips);
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }, []);
+
+
+  const ftList = friendTrips !== undefined && friendTrips.length > 0 ? (
+    friendTrips.map((trip, index) => (
+      <button
+        key={index}
+        className="w-full text-left px-1 bg-white border border-gray-300 mb-2 rounded-lg relative hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onClick={() => console.log('Trip clicked', trip)}
+      >
+        <div>
+          <h3 className="relative text-m font-semibold py-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
+          <p>Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}</p>
+          <p>{formatDate(trip.leaving_time.toLocaleString())}</p>
+          <p><strong>Seats Available:</strong> {trip.seats_available}</p>
+        </div>
+      </button>
+    ))
+  ) : (
+    <p className="text-center">No friend trips available.</p>
+  );
+
+  const ptList = publicTrips !== undefined && publicTrips.length > 0 ? (
+    publicTrips.map((trip, index) => (
+      <button
+        key={index}
+        className="w-full text-left px-1 bg-white border border-gray-300 mb-2 rounded-lg relative hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onClick={() => console.log('Trip clicked', trip)}
+      >
+        <h3 className="relative text-m font-semibold py-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
+        <p>Driver: {trip.driver.first_name} • Trips taken: {trip.driver.trips_taken}</p>
+        <p>{formatDate(trip.leaving_time.toLocaleString())}</p>
+        <p><strong>Seats Available:</strong> {trip.seats_available}</p>
+      </button>
+    ))
+  ) : (
+    <p className="text-center">No public trips available.</p>
+  );
+  //#endregion
+
+
+
+
+
+  //#region Search
   function handleSearchChange(event: React.ChangeEvent<HTMLInputElement>) {
     setSearchInput(event.target.value);
 
@@ -121,42 +182,28 @@ export default function Home() {
     console.log('Search input:', searchInput);
   }
 
-  const friendTripsComponents = friendTrips !== undefined && friendTrips.length > 0 ? (
-    friendTrips.map((trip, index) => (
-      <button
-        key={index}
-        className="w-full text-left px-1 bg-white border border-gray-300 mb-2 rounded-lg relative hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        onClick={() => console.log('Trip clicked', trip)}
-      >
-        <div>
-          <h3 className="relative text-m font-semibold py-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
-          <p>Driver: {trip.driver_first_name} {trip.driver_last_name} • Trips taken: {trip.driver_trips_taken}</p>
-          <p>{formatDate(trip.leaving_time.toLocaleString())}</p>
-          <p><strong>Seats Available:</strong> {trip.seats_available}</p>
-        </div>
-      </button>
-    ))
-  ) : (
-    <p className="text-center">No friend trips available.</p>
-  );
 
-  const publicTripsComponents = publicTrips !== undefined && publicTrips.length > 0 ? (
-    publicTrips.map((trip, index) => (
-      <button
-        key={index}
-        className="w-full text-left px-1 bg-white border border-gray-300 mb-2 rounded-lg relative hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        onClick={() => console.log('Trip clicked', trip)}
-      >
-        <h3 className="relative text-m font-semibold py-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
-        <p>Driver: {trip.driver_first_name} • Trips taken: {trip.driver_trips_taken}</p>
-        <p>{formatDate(trip.leaving_time.toLocaleString())}</p>
-        <p><strong>Seats Available:</strong> {trip.seats_available}</p>
-      </button>
-    ))
-  ) : (
-    <p className="text-center">No public trips available.</p>
-  );
+  // const debouncedSetSearchInput = debounce((value: string) => {
+  //   if (value.length > 3) {
+  //     console.log("values greater than 3, searching for: ", value);
+  //     // setSearchBar(      <SearchBox
+  //     //   accessToken={accessToken}
+  //     //   map={mapInstanceRef.current}
+  //     //   mapboxgl={mapboxgl}
+  //     //   value={inputValue}
+  //     //   onChange={setInputValue}
+  //     //   marker
+  //     // />)
+  //   }
+  // }, 1000);
 
+  // useEffect(() => {
+  //   debouncedSetSearchInput(inputValue);
+  //   return () => debouncedSetSearchInput.cancel();
+  // }, [inputValue]);
+  //#endregion
+
+  console.log("being called again");
   return (
     <div id="main" className="flex flex-col md:flex-row overflow-hidden home-height">
       <div id="map-container" className="relative flex-grow overflow-hidden md:w-3/4 w-full">
@@ -167,9 +214,11 @@ export default function Home() {
             placeholder="Where is your next adventure?"
             className="font-serif flex-grow border border-white-300 rounded-l-full py-2 sm:py-3 md:py-4 px-2 sm:px-4 md:px-5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl"
             value={searchInput}
-            onChange={handleSearchChange}
+            onClick={handleSearchChange}
           />
           <div> 
+
+
           </div>
           <button
             id="search-button"
@@ -179,35 +228,30 @@ export default function Home() {
             Search
           </button>
         </div>
-        <div id="map" ref={mapContainer} className="w-full h-full"></div>
+        {/* <div>
+        <SearchBox
+        accessToken={import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}
+        map={mapInstanceRef.current}
+        mapboxgl={mapboxgl}
+        value={inputValue}
+        onChange={setInputValue}
+        marker
+      />
+        </div> */}
+        <div id="map" ref={mapContainerRef} className="w-full h-full"></div>
       </div>
       <div id="panel" className="bg-white-200 p-4 md:w-1/4 w-full md:h-auto h-1/4 overflow-auto">
         <div>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-black-300"></div>
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white px-4 text-lg font-bold">Friend Trips</span>
-            </div>
-          </div>
+          <Linebar name="Friend Trips" />
           <ul>
-            {friendTripsComponents}
+            {ftList}
           </ul>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-black-300"></div>
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white px-4 text-lg font-bold">Public Trips</span>
-            </div>
-          </div>
+          <Linebar name="Public Trips" />
           <ul>
-            {publicTripsComponents}
+            {ptList}
           </ul>
         </div>
       </div>
     </div>
   );
 }
-
