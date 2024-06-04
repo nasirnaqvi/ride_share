@@ -169,9 +169,6 @@ module.exports = function (sessionSecret) {
     }
   };
 
-  // Apply authentication middleware to specific routes
-  router.use(authenticate);
-
   // Logout get call
   router.get("/logout", (req, res) => {
     try {
@@ -183,6 +180,9 @@ module.exports = function (sessionSecret) {
       res.status(500).json({ showSignUpPanel: false });
     }
   });
+
+  // Apply authentication middleware to specific routes
+  router.use(authenticate);
 
   return router;
 }
