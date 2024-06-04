@@ -26,14 +26,17 @@ export default function Home() {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [lng, setLng] = useState(-70.9);
-  const [lat, setLat] = useState(42.35);
+  const [lat, setLat] = useState(38.35);
   const [zoom, setZoom] = useState(9);
   const [friendTrips, setFriendTrips] = useState<Trip[]>([]);
   const [publicTrips, setPublicTrips] = useState<Trip[]>([]);
   const [searchInput, setSearchInput] = useState('');
 
+  console.log(lng, lat, zoom)
+
   // Initialize map when component mounts
   useEffect(() => {
+    console.log('running')
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -78,7 +81,6 @@ export default function Home() {
       .then(response => {
         setFriendTrips(response.data.friend_trips);
         setPublicTrips(response.data.public_trips);
-        console.log(publicTrips)
       })
       .catch(error => {
         console.log(error)
@@ -106,6 +108,13 @@ export default function Home() {
       case 3: return "rd";
       default: return "th";
     }
+  }
+
+  function handleSearchChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setSearchInput(event.target.value);
+
+    setFriendTrips(friendTrips.filter(trip => trip.destination.toLowerCase().includes(event.target.value.toLowerCase())));
+    setPublicTrips(publicTrips.filter(trip => trip.destination.toLowerCase().includes(event.target.value.toLowerCase())));
   }
 
   function handleSearch() {
@@ -158,7 +167,7 @@ export default function Home() {
             placeholder="Where is your next adventure?"
             className="font-serif flex-grow border border-white-300 rounded-l-full py-2 sm:py-3 md:py-4 px-2 sm:px-4 md:px-5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={handleSearchChange}
           />
           <div> 
           </div>
