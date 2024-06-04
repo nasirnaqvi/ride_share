@@ -6,64 +6,127 @@ const db = require('./../controllers/db.js');
 
 module.exports = function () {
     //Returns an an array with two items: "friend_trips" and "others"
-    router.get('/getTrips', async (req, res) => { 
-        console.log("in TripRoutes")
-        console.log(req.session);
-        //Need to add distance for trips
-        console.log("attemping to get trips for user ", req.session.username);
+    // router.get('/getTrips', async (req, res) => { 
+    //     console.log("in TripRoutes")
+    //     console.log(req.session);
+    //     //Need to add distance for trips
+    //     console.log("attemping to get trips for user ", req.session.username);
+    //     try {
+    //         // Query to fetch trips along with their associated friendship status
+    //         const query = `
+    //         WITH friend_trips AS (
+    //             SELECT 
+    //                 t.*, f.status
+    //             FROM 
+    //                 trips t
+    //             LEFT JOIN 
+    //                 friendships f ON (t.driver_id = f.user1_id OR t.driver_id = f.user2_id)
+    //             WHERE 
+    //                 f.status = 'accepted' 
+    //                 AND (f.user1_id = $1 OR f.user2_id = $1) 
+    //                 AND t.active = true 
+    //                 AND t.driver_id != $1
+    //         ),
+    //         other_trips AS (
+    //             SELECT 
+    //                 t.*, f.status AS friendship_status
+    //             FROM 
+    //                 trips t
+    //             LEFT JOIN 
+    //                 friendships f ON (t.driver_id = f.user1_id OR t.driver_id = f.user2_id)
+    //             WHERE 
+    //                 t.active = true 
+    //                 AND t.driver_id != $1
+    //                 AND NOT EXISTS (
+    //                     SELECT 1
+    //                     FROM friend_trips at
+    //                     WHERE at.trip_id = t.trip_id
+    //                 )
+    //         )
+    //         SELECT 
+    //             json_build_object(
+    //                 'friend_trips', json_agg(friend_trips),
+    //                 'public_trips', json_agg(other_trips)
+    //             )
+    //         FROM 
+    //             friend_trips,
+    //             other_trips;
+    //       `;
+
+    //         // Execute the query
+    //         const item = await db.query(query, [req.session.username]);
+    //         // Send the response
+    //         console.log(item[0].json_build_object);
+    //         res.status(200).json(item[0].json_build_object);
+    //     } catch (error) {
+    //         console.error('Error fetching trips:', error);
+    //         res.status(500).json({ error: 'An error occurred while fetching trips' });
+    //     }
+    // });
+
+    router.get('/getTrips', async (req, res) => {
         try {
-            // Query to fetch trips along with their associated friendship status
-            const query = `
-            WITH friend_trips AS (
+            const query1 = `
                 SELECT 
-                    t.*, f.status
-                FROM 
+                    t.*,
+                    f.status,
+                    u.first_name AS driver_first_name,
+                    u.last_name AS driver_last_name,
+                    u.trips_taken AS driver_trips_taken,
+                    u.profile_img AS driver_profile_img,
+                    t.max_passengers - t.current_passengers AS seats_available
+                FROM
                     trips t
                 LEFT JOIN 
-                    friendships f ON (t.driver_id = f.user1_id OR t.driver_id = f.user2_id)
-                WHERE 
+                    friendships f ON t.driver_id = f.user1_id OR t.driver_id = f.user2_id
+                LEFT JOIN
+                    users u ON t.driver_id = u.username
+                WHERE
                     f.status = 'accepted' 
                     AND (f.user1_id = $1 OR f.user2_id = $1) 
                     AND t.active = true 
-                    AND t.driver_id != $1
-            ),
-            other_trips AS (
-                SELECT 
-                    t.*, f.status AS friendship_status
+                    AND t.driver_id != $1`;
+
+            const query2 = `
+                SELECT DISTINCT
+                    t.*, 
+                    f.status AS friendship_status,
+                    u.first_name AS driver_first_name,
+                    u.last_name AS driver_last_name,
+                    u.trips_taken AS driver_trips_taken,
+                    u.profile_img AS driver_profile_img,
+                    t.max_passengers - t.current_passengers AS seats_available
                 FROM 
                     trips t
-                LEFT JOIN 
-                    friendships f ON (t.driver_id = f.user1_id OR t.driver_id = f.user2_id)
+                INNER JOIN 
+                    friendships f ON t.driver_id = f.user1_id OR t.driver_id = f.user2_id
+                LEFT JOIN
+                    users u ON t.driver_id = u.username
                 WHERE 
                     t.active = true 
                     AND t.driver_id != $1
-                    AND NOT EXISTS (
-                        SELECT 1
-                        FROM friend_trips at
-                        WHERE at.trip_id = t.trip_id
-                    )
-            )
-            SELECT 
-                json_build_object(
-                    'friend_trips', json_agg(friend_trips),
-                    'public_trips', json_agg(other_trips)
-                )
-            FROM 
-                friend_trips,
-                other_trips;
-          `;
+                    AND t.max_passengers - t.current_passengers > 0
+                    AND t.trip_id NOT IN (
+                        SELECT trip_id 
+                        FROM trips
+                        LEFT JOIN friendships ON trips.driver_id = friendships.user1_id OR trips.driver_id = friendships.user2_id
+                        WHERE friendships.status = 'accepted' 
+                            AND (friendships.user1_id = $1 OR friendships.user2_id = $1) 
+                            AND trips.active = true 
+                            AND trips.driver_id != $1
+                    )             
+            `;
 
-            // Execute the query
-            const item = await db.query(query, [req.session.username]);
-            // Send the response
-            console.log(item[0].json_build_object);
-            res.status(200).json(item[0].json_build_object);
-        } catch (error) {
+            const fTrips = await db.query(query1, [req.session.username]);
+            const pTrips = await db.query(query2, [req.session.username]);
+            res.status(200).json({ friend_trips: fTrips, public_trips: pTrips });
+        }
+        catch (error) {
             console.error('Error fetching trips:', error);
             res.status(500).json({ error: 'An error occurred while fetching trips' });
         }
     });
-
+    
     router.post('/createTrip', async (req, res) => {
         try {
             const { driver_id, destination, original_location, active, payment_req, leaving_time } = req.body;

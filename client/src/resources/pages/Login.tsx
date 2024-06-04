@@ -71,32 +71,32 @@ export default function Login(props: LoginProps) {
     // }
 
     return (
-        <div className="flex mt-24 w-screen justify-center font-sans">
-            <div className="mt-20 mr-10">
-                <h1 className="text-5xl font-bold text-blue-600 mr-auto">ride share</h1>
-                <h2 className="text-md mr-auto roll-in-left">For all your travel needs</h2>
+        <div className="flex flex-col lg:flex-row lg:justify-center mt-2 w-screen font-sans p-4">
+            <div className="mt-2 lg:mt-20 lg: mr-5 mb-2">
+                <h1 className="text-5xl xl:text-6xl font-bold text-blue-600 mr-auto">ride share</h1>
+                <h2 className="text-md xl:text-lg mr-auto roll-in-left">For all your travel needs</h2>
             </div>
             <div 
-                className="flex flex-col justify-center form-background w-1/4 rounded-lg shadow-lg"
+                className="flex flex-col justify-center form-background rounded-lg shadow-lg h-screen-70 lg:w-3/5 xl:w-2/5 2xl:w-1/3"
             >
-                <div className="flex ml-4 text-xl">
+                <div className="flex ml-4 mt-3 text-xl">
                     <button
                         onClick={() => setOnLogin(true)}  
                         className={onLogin ? "login-signin" : "login-signin-dark"}  
                     >
-                        LOG IN
+                        Log In
                     </button>
                     <button
                         onClick={() => setOnLogin(false)}
                         className={onLogin ? "login-signin-dark" : "login-signin"}
                     >
-                        SIGN UP
+                        Sign Up
                     </button>
                 </div>
                 {onLogin ? 
                     <form 
                         onSubmit={handleLogin}
-                        className="flex flex-col p-4 w-full "
+                        className="flex flex-col p-4 w-full overflow-auto"
                     >  
                         <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
                         <input
@@ -129,7 +129,7 @@ export default function Login(props: LoginProps) {
                     :
                     <form 
                         onSubmit={handleSignup}
-                        className="flex flex-col p-4 w-full "
+                        className="flex flex-col p-4 w-full overflow-auto"
                     >  
                         <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
                         <input
@@ -191,10 +191,7 @@ export default function Login(props: LoginProps) {
                         </a>
                     </div>
                 </div> */}
-
             </div>
-
-
         </div>
     )
 }
