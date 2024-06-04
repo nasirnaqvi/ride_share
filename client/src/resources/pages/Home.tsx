@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import Linebar from '../components/Linebar';
 import { debounce } from 'lodash';
 import mapboxgl from 'mapbox-gl';
