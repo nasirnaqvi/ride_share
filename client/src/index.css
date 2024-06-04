@@ -6,6 +6,10 @@
     .h-screen-70 {
         height: 70vh;
     }
+
+    .home-height {
+        height: calc(100vh - 3.5rem);
+    }
 }
 
 
