@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   first_name VARCHAR(50),
   last_name VARCHAR(50),
   email VARCHAR(50),
-  profile_img BYTEA,
+  profile_img TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Added default value
   trips_taken INTEGER
 );

@@ -14,6 +14,8 @@ module.exports = function () {
             email: data.email,
             first_name: data.first_name,
             last_name: data.last_name,
+            profile_img: data.profile_img,
+            trips_taken: data.trips_taken,
             password: "",
           };
           res.status(200).json(response);
@@ -26,12 +28,21 @@ module.exports = function () {
 
       router.post('/updateInfo', async (req, res) => {
         try {
-          const { username, email, first_name, last_name, password } = req.body;
-          const hashedPassword = await bcrypt.hash(password, 10);
-          const updateQuery = `UPDATE users SET username = $1, email = $2, first_name = $3, last_name = $4, password = $5 WHERE username = $6`;
-          await db.none(updateQuery, [username, email, first_name, last_name, hashedPassword, req.session.username]);
-          req.session.username = username;
-          res.status(200).json({ message: "Profile updated successfully" });
+          const { username, email, profile_img, first_name, last_name, password } = req.body;
+          
+          if (password === "") {
+            const updateQuery = `UPDATE users SET username = $1, email = $2, first_name = $3, last_name = $4, profile_img = $5 WHERE username = $6`;
+            await db.none(updateQuery, [username, email, first_name, last_name, profile_img, req.session.username]);
+            req.session.username = username;
+            res.status(200).json({ message: "Profile updated successfully" });
+          }
+          else {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const updateQuery = `UPDATE users SET username = $1, email = $2, first_name = $3, last_name = $4, password = $5, profile_img = $6 WHERE username = $7`;
+            await db.none(updateQuery, [username, email, first_name, last_name, hashedPassword, profile_img, req.session.username]);
+            req.session.username = username;
+            res.status(200).json({ message: "Profile updated successfully" });
+          }
         }
         catch (err) {
           console.error(err);
