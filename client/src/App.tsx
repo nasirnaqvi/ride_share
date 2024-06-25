@@ -14,7 +14,7 @@ export default function App() {
   return (
     <Router> 
       <Routes>
-        <Route element={<Layout />}>
+        <Route element={<Layout signedIn={signedIn}/>}>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login setSignedIn={() => setSignedIn(true)}/>} />
           <Route path="/profile" element={

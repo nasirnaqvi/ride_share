@@ -1,17 +1,25 @@
 import { Link } from 'react-router-dom';
 
-export default function Navbar() {
+type NavbarProps = {
+    signedIn: boolean
+}
+
+export default function Navbar(props: NavbarProps) {
     return (
-        <nav className="flex items-center bg-black text-white text-lg space-x-3 h-14">
-            <h1 className="ml-5 text-2xl">ride share</h1>
-            <Link to="/">
-                <button className="ml-16">Find Rides</button>
+        <nav className="bg-black text-white flex items-center p-3 w-screen">
+            <h1 className="text-2xl md:text-3xl">ride share</h1>
+            <Link to="/" className="ml-3 md:ml-5 mt-1 md:text-xl">
+                Find Rides
             </Link>
-            <Link to="/myrides">
-                <button>My Rides</button>
+            <Link to="/myrides" className="ml-3 md:ml-5 mt-1 md:text-xl">
+                MyRides
             </Link>
-            <Link to="/profile">
-                <button>Profile</button>
+            <Link to="/profile" className="ml-auto mt-1 md:text-xl">
+                {props.signedIn ? 
+                    <img src="/images/profile_icon.png" alt="Profile picture." className="w-10 md:w-12" />
+                : 
+                    "Login"
+                }
             </Link>
         </nav>
     )
