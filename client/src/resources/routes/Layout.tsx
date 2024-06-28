@@ -2,10 +2,14 @@ import { Outlet } from 'react-router-dom';
 
 import Navbar from "../components/Navbar";
 
-export default function Layout() {
+type LayoutProps = {
+    signedIn: boolean
+}
+
+export default function Layout(props: LayoutProps) {
     return (
         <div>
-            <Navbar />
+            <Navbar signedIn={props.signedIn}/>
             <Outlet />
         </div>
     )
