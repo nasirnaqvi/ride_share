@@ -6,7 +6,7 @@ type NavbarProps = {
 
 export default function Navbar(props: NavbarProps) {
     return (
-        <nav className="bg-black text-white flex items-center p-3 w-screen">
+        <nav className="bg-black text-white flex items-center p-3">
             <h1 className="text-2xl md:text-3xl">ride share</h1>
             <Link to="/" className="ml-3 md:ml-5 mt-1 md:text-xl">
                 Find Rides

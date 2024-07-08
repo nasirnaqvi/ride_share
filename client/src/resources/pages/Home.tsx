@@ -41,43 +41,43 @@ export default function Home() {
 
   // #region Location-Tracking
   // Initialize map when component mounts
-  // useEffect(() => {
-  //   if (navigator.geolocation) {
-  //     navigator.geolocation.getCurrentPosition((position) => {
-  //       const { longitude, latitude } = position.coords;
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { longitude, latitude } = position.coords;
 
-  //       // Initialize map if geolocation is provided
-  //       mapInstanceRef.current = new mapboxgl.Map({
-  //         container: mapContainerRef.current!,
-  //         style: 'mapbox://styles/mapbox/streets-v12',
-  //         center: [longitude, latitude],
-  //         zoom: zoom
-  //       });
-  //       mapInstanceRef.current!.on('move', () => {
-  //         setLng(parseFloat(mapInstanceRef.current!.getCenter().lng.toFixed(4)));
-  //         setLat(parseFloat(mapInstanceRef.current!.getCenter().lat.toFixed(4)));
-  //         setZoom(parseFloat(mapInstanceRef.current!.getZoom().toFixed(2)));
-  //       });
+        // Initialize map if geolocation is provided
+        mapInstanceRef.current = new mapboxgl.Map({
+          container: mapContainerRef.current!,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [longitude, latitude],
+          zoom: zoom
+        });
+        mapInstanceRef.current!.on('move', () => {
+          setLng(parseFloat(mapInstanceRef.current!.getCenter().lng.toFixed(4)));
+          setLat(parseFloat(mapInstanceRef.current!.getCenter().lat.toFixed(4)));
+          setZoom(parseFloat(mapInstanceRef.current!.getZoom().toFixed(2)));
+        });
 
-  //       setLng(longitude);
-  //       setLat(latitude);
-  //     },
-  //     (error) => console.log(error));
-  //   } else {
-  //     // Fallback in case geolocation is not supported
-  //     mapInstanceRef.current = new mapboxgl.Map({
-  //       container: mapContainerRef.current!,
-  //       style: 'mapbox://styles/mapbox/streets-v12',
-  //       center: [lng, lat],
-  //       zoom: zoom
-  //     });
-  //     mapInstanceRef.current!.on('move', () => {
-  //       setLng(parseFloat(mapInstanceRef.current!.getCenter().lng.toFixed(4)));
-  //       setLat(parseFloat(mapInstanceRef.current!.getCenter().lat.toFixed(4)));
-  //       setZoom(parseFloat(mapInstanceRef.current!.getZoom().toFixed(2)));
-  //     });
-  //   }
-  // }, []);
+        setLng(longitude);
+        setLat(latitude);
+      },
+      (error) => console.log(error));
+    } else {
+      // Fallback in case geolocation is not supported
+      mapInstanceRef.current = new mapboxgl.Map({
+        container: mapContainerRef.current!,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [lng, lat],
+        zoom: zoom
+      });
+      mapInstanceRef.current!.on('move', () => {
+        setLng(parseFloat(mapInstanceRef.current!.getCenter().lng.toFixed(4)));
+        setLat(parseFloat(mapInstanceRef.current!.getCenter().lat.toFixed(4)));
+        setZoom(parseFloat(mapInstanceRef.current!.getZoom().toFixed(2)));
+      });
+    }
+  }, []);
   // #endregion
 
 
@@ -201,7 +201,7 @@ export default function Home() {
             Search
           </button>
         </div>
-        {/* <div id="map" ref={mapContainerRef} className="w-full h-full"></div> */}
+        <div id="map" ref={mapContainerRef} className="w-full h-full"></div>
       </div>
       <div id="panel" className="bg-white-200 p-4 md:w-1/4 w-full md:h-auto h-1/4 overflow-auto">
         <div>
