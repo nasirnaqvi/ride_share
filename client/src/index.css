@@ -7,8 +7,12 @@
         height: 70vh;
     }
 
-    .home-height {
+    .home-sm {
         height: calc(100vh - 3.5rem);
+    }
+
+    .home-md {
+        height: calc(100vh - 3.75rem);
     }
 }
 
