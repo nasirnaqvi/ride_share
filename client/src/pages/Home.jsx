@@ -56,6 +56,11 @@ export default function Home() {
 
         mapInstanceRef.current.addControl(new MapboxDirections({
           accessToken: mapboxgl.accessToken,
+          profile: 'mapbox/driving',
+          controls: {
+            instructions: false,
+            profileSwitcher: false
+          }
         }), 'top-left');
 
         setLng(longitude);
@@ -87,6 +92,11 @@ export default function Home() {
 
       mapInstanceRef.current.addControl(new MapboxDirections({
         accessToken: mapboxgl.accessToken,
+        profile: 'mapbox/driving',
+        controls: {
+          instructions: false,
+          profileSwitcher: false
+        }
       }), 'top-left');
     }
   }, []);
@@ -138,32 +148,32 @@ export default function Home() {
     friendTrips.map((trip, index) => (
       <button
         key={index}
-        className="w-full text-left p-4 bg-white border border-gray-300 mb-3 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full text-left p-2 sm:p-4 bg-white border border-gray-300 mb-2 sm:mb-3 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
         onClick={() => console.log('Trip clicked', trip)}
       >
         <div>
-          <h3 className="text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
-          <p className="text-sm text-gray-700 mb-1">Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}</p>
-          <p className="text-sm text-gray-600 mb-1">{formatDate(trip.leaving_time.toLocaleString())}</p>
-          <p className="text-sm text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>
+          <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
+          <p className="text-xs sm:text-sm text-gray-700 mb-1">Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}</p>
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">{formatDate(trip.leaving_time.toLocaleString())}</p>
+          <p className="text-xs sm:text-sm text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>
         </div>
       </button>
     ))
   ) : (
     <p className="text-center text-gray-600">No friend trips available.</p>
   );
-
+  
   const ptList = publicTrips !== null && publicTrips.length > 0 ? (
     publicTrips.map((trip, index) => (
       <button
         key={index}
-        className="w-full text-left p-4 bg-white border border-gray-300 mb-3 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full text-left p-2 sm:p-4 bg-white border border-gray-300 mb-2 sm:mb-3 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
         onClick={() => console.log('Trip clicked', trip)}
       >
-        <h3 className="text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
-        <p className="text-sm text-gray-700 mb-1">Driver: {trip.driver.first_name} • Trips taken: {trip.driver.trips_taken}</p>
-        <p className="text-sm text-gray-600 mb-1">{formatDate(trip.leaving_time.toLocaleString())}</p>
-        <p className="text-sm text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>
+        <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
+        <p className="text-xs sm:text-sm text-gray-700 mb-1">Driver: {trip.driver.first_name} • Trips taken: {trip.driver.trips_taken}</p>
+        <p className="text-xs sm:text-sm text-gray-600 mb-1">{formatDate(trip.leaving_time.toLocaleString())}</p>
+        <p className="text-xs sm:text-sm text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>
       </button>
     ))
   ) : (
@@ -172,49 +182,12 @@ export default function Home() {
 
   // #endregion
 
-
-  // #region handle search functions
-  function handleSearchChange(event) {
-    setSearchInput(event.target.value);
-
-    if (friendTrips) {
-      setFriendTrips(friendTrips.filter(trip => trip.destination.toLowerCase().includes(event.target.value.toLowerCase())));
-    }
-    if (publicTrips) {
-      setPublicTrips(publicTrips.filter(trip => trip.destination.toLowerCase().includes(event.target.value.toLowerCase())));
-    }
-  }
-
-  function handleSearch() {
-    console.log('Search input:', searchInput);
-  }
-
-  // #endregion
-
-
   return (
-    <div id="main" className="flex flex-col md:flex-row overflow-hidden home-sm md:home-md">
-      <div id="map-container" className="relative flex-grow overflow-hidden md:w-3/4 w-full">
-        {/* <div id="search-bar" className="rounded-full absolute p-1 sm:p-4 md:p-6 bg-clear z-10 left-1/2 transform -translate-x-1/2 w-5/6 flex items-center">
-          <input
-            id="search-input"
-            type="text"
-            placeholder="Where is your next adventure?"
-            className="font-serif flex-grow border border-gray-300 rounded-l-full py-2 sm:py-3 md:py-4 px-3 sm:px-4 md:px-5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl"
-            value={searchInput}
-            onChange={handleSearchChange}
-          />
-          <button
-            id="search-button"
-            onClick={handleSearch}
-            className="bg-blue-500 hover:bg-blue-600 text-white py-2 sm:py-3 md:py-4 px-3 sm:px-4 md:px-5 rounded-r-full text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-serif"
-          >
-            Search
-          </button>
-        </div> */}
+    <div id="main" className="flex flex-col lg:flex-row overflow-hidden home-sm md:home-md">
+      <div id="map-container" className="relative flex-grow overflow-hidden lg:w-3/4 w-full">
         <div id="map" ref={mapContainerRef} className="w-full h-full"></div>
       </div>
-      <div id="panel" className="bg-white p-4 md:w-1/4 w-full md:h-auto h-1/4 overflow-auto">
+      <div id="panel" className="bg-white p-4 lg:w-1/4 w-full lg:h-auto h-1/4 overflow-auto">
         <div>
           <Linebar name="Friend Trips" />
           <ul>
