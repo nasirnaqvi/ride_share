@@ -2,11 +2,8 @@ import { Outlet } from 'react-router-dom';
 
 import Navbar from "../components/Navbar";
 
-type LayoutProps = {
-    signedIn: boolean
-}
 
-export default function Layout(props: LayoutProps) {
+export default function Layout(props) {
     return (
         <div>
             <Navbar signedIn={props.signedIn}/>
@@ -14,4 +11,3 @@ export default function Layout(props: LayoutProps) {
         </div>
     )
 }
-

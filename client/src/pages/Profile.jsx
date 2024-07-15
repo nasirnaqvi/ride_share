@@ -1,23 +1,8 @@
 import { ChangeEvent, useEffect, useState } from "react"
 import axios from "axios"
 
-
-interface ProfileProps {
-  setSignedIn: () => void
-}
-
-interface User {
-  username: string,
-  first_name: string,
-  last_name: string,
-  email: string,
-  profile_img: string | null,
-  trips_taken: number,
-  password: string,
-}
-
-export default function Profile(props: ProfileProps) {
-  const [user, setUser] = useState<User>({
+export default function Profile(props) {
+  const [user, setUser] = useState({
     username: "",
     first_name: "",
     last_name: "",
@@ -40,19 +25,19 @@ export default function Profile(props: ProfileProps) {
     })
   }, [])
 
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files![0];
+  function handleFileChange(event) {
+    const file = event.target.files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
       setUser({
         ...user,
-        profile_img: reader.result as string
+        profile_img: reader.result
       });
     }
     reader.readAsDataURL(file);
   };
 
-  function changeForm(event: ChangeEvent<HTMLInputElement>) {
+  function changeForm(event) {
     const {name, value} = event.target
     setUser({
       ...user, 
@@ -60,7 +45,7 @@ export default function Profile(props: ProfileProps) {
     })
   }
 
-  function handleProfileUpdate(event: React.FormEvent<HTMLFormElement>) {
+  function handleProfileUpdate(event) {
     event.preventDefault()
 
     if (user.password !== passwordConfirm) {

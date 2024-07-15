@@ -1,6 +1,6 @@
 
 
-export default function Linebar({name}: {name: string}) {
+export default function Linebar({name}) {
     return (
         <div className="relative">
         <div className="absolute inset-0 flex items-center" aria-hidden="true">
