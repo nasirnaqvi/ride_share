@@ -3,11 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 
-interface LoginProps {
-    setSignedIn: () => void
-}
-
-export default function Login(props: LoginProps) {
+export default function Login(props) {
 
     const [user, setUser] = useState({
         username: '',
@@ -23,12 +19,12 @@ export default function Login(props: LoginProps) {
 
     const navigate = useNavigate()
 
-    function changeForm(event: ChangeEvent<HTMLInputElement>) {
+    function changeForm(event) {
         const {name, value} = event.target
         setUser({...user, [name]: value})
     }
 
-    function handleLogin(event: FormEvent<HTMLFormElement>) {
+    function handleLogin(event) {
         event.preventDefault();  
 
         axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
@@ -46,7 +42,7 @@ export default function Login(props: LoginProps) {
         })
     }
 
-    function handleSignup(event: FormEvent<HTMLFormElement>) {
+    function handleSignup(event) {
         event.preventDefault()
 
         axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/register`, user)

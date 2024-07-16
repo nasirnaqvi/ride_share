@@ -1,12 +1,8 @@
 import { Link } from 'react-router-dom';
 
-type NavbarProps = {
-    signedIn: boolean
-}
-
-export default function Navbar(props: NavbarProps) {
+export default function Navbar(props) {
     return (
-        <nav className="bg-black text-white flex items-center p-3 w-screen">
+        <nav className="bg-black text-white flex items-center p-3">
             <h1 className="text-2xl md:text-3xl">ride share</h1>
             <Link to="/" className="ml-3 md:ml-5 mt-1 md:text-xl">
                 Find Rides
