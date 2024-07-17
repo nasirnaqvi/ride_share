@@ -107,7 +107,7 @@ export default function Home() {
   }, []);
   // #endregion
 
-  // Fetch trips data from backend when page loads
+  // #region getting trips
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTrips`, {withCredentials: true})
       .then(response => {
@@ -119,6 +119,15 @@ export default function Home() {
         console.log(error)
       })
   }, []);
+  // #endregion
+
+  // #region handleTripClick
+  const handleTripClick = (trip) => () => {
+    console.log(trip);
+    directionsRef.current.setOrigin([-104.74598,40.10182]);
+    directionsRef.current.setDestination([-105.03299,40.02510]);
+  }
+  // #endregion
 
 
   // #region convert trips to JSX
@@ -127,7 +136,7 @@ export default function Home() {
       <button
         key={index}
         className="w-full text-left p-2 sm:p-4 bg-white border border-gray-300 mb-2 sm:mb-3 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        onClick={() => console.log('Trip clicked', trip)}
+        onClick={handleTripClick(trip)}
       >
         <div>
           <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
@@ -146,7 +155,7 @@ export default function Home() {
       <button
         key={index}
         className="w-full text-left p-2 sm:p-4 bg-white border border-gray-300 mb-2 sm:mb-3 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        onClick={() => console.log('Trip clicked', trip)}
+        onClick={handleTripClick(trip)}
       >
         <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
         <p className="text-xs sm:text-sm text-gray-700 mb-1">Driver: {trip.driver.first_name} • Trips taken: {trip.driver.trips_taken}</p>
@@ -157,7 +166,6 @@ export default function Home() {
   ) : (
     <p className="text-center text-gray-600">No public trips available.</p>
   );
-
   // #endregion
 
   return (
