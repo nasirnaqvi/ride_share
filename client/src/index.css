@@ -60,6 +60,10 @@
 }
 
 @layer utilities {
+    .max-h-54 {
+        max-height: 13.5rem;
+    }
+
     .roll-in-left {
         width: 12rem;
         white-space: nowrap;
