@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import axios from 'axios'
 
 import Layout from './routes/Layout'
 import ProtectedRoute from './routes/ProtectedRoute'
@@ -10,6 +11,16 @@ import MyRides from './pages/MyRides'
 
 export default function App() {
   const [signedIn, setSignedIn] = useState(false)
+
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/isLoggedIn`, {withCredentials: true})
+      .then(response => {
+        setSignedIn(response.data.isLoggedIn)
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }, []);
 
   return (
     <Router> 
