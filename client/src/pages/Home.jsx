@@ -24,6 +24,7 @@ export default function Home() {
   const [lng, setLng] = useState(-70.9);
   const [lat, setLat] = useState(38.35);
   const [zoom, setZoom] = useState(9);
+  const [tripClicked, setTripClicked] = useState(false);
 
 
   // #region Location-Tracking
@@ -123,9 +124,16 @@ export default function Home() {
 
   // #region handleTripClick
   const handleTripClick = (trip) => () => {
-    console.log(trip);
-    directionsRef.current.setOrigin([-104.74598,40.10182]);
-    directionsRef.current.setDestination([-105.03299,40.02510]);
+    if (!tripClicked) {
+      directionsRef.current.setOrigin("Red Rocks Amphitheatre, Morrison, CO");
+      directionsRef.current.setDestination("Denver, CO");
+    }
+    else {
+      document.querySelector('.mapboxgl-directions-origin .mapboxgl-ctrl-geocoder input').value = '';
+      document.querySelector('.mapboxgl-directions-destination .mapboxgl-ctrl-geocoder input').value = '';
+      directionsRef.current.removeRoutes();
+    }
+    setTripClicked((prevSetTripClicked) => !prevSetTripClicked);
   }
   // #endregion
 
