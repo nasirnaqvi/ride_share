@@ -24,7 +24,7 @@ export default function Home() {
   const [lng, setLng] = useState(-70.9);
   const [lat, setLat] = useState(38.35);
   const [zoom, setZoom] = useState(9);
-  const [tripClicked, setTripClicked] = useState(false);
+  const [tripSelected, setTripSelected] = useState(null);
 
 
   // #region Location-Tracking
@@ -123,36 +123,59 @@ export default function Home() {
   // #endregion
 
   // #region handleTripClick
-  const handleTripClick = (trip) => () => {
-    if (!tripClicked) {
-      directionsRef.current.setOrigin("Red Rocks Amphitheatre, Morrison, CO");
-      directionsRef.current.setDestination("Denver, CO");
-    }
-    else {
-      document.querySelector('.mapboxgl-directions-origin .mapboxgl-ctrl-geocoder input').value = '';
-      document.querySelector('.mapboxgl-directions-destination .mapboxgl-ctrl-geocoder input').value = '';
+  const handleTripClick = (trip) => {
+    if (tripSelected === trip) {
+      setTripSelected(null);
       directionsRef.current.removeRoutes();
     }
-    setTripClicked((prevSetTripClicked) => !prevSetTripClicked);
+    else {
+      setTripSelected(trip);
+      directionsRef.current.setOrigin(trip.original_location);
+      directionsRef.current.setDestination(trip.destination);
+    }
+  }
+
+  const handleTripJoin = (e, trip) => {
+    e.stopPropagation();
+    console.log('joining trip', trip);
   }
   // #endregion
+
 
 
   // #region convert trips to JSX
   const ftList = friendTrips !== null && friendTrips.length > 0 ? (
     friendTrips.map((trip, index) => (
-      <button
-        key={index}
-        className="w-full text-left p-2 sm:p-4 bg-white border border-gray-300 mb-2 sm:mb-3 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        onClick={handleTripClick(trip)}
-      >
-        <div>
-          <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
-          <p className="text-xs sm:text-sm text-gray-700 mb-1">Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}</p>
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">{FormatDate(trip.leaving_time.toLocaleString())}</p>
-          <p className="text-xs sm:text-sm text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>
-        </div>
-      </button>
+      <div key={index} className="mb-2 sm:mb-3">
+        <button
+          className="w-full text-left p-2 sm:p-4 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onClick={() => handleTripClick(trip)}
+        >
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold mb-1">
+              {trip.original_location} <strong>to</strong> {trip.destination}
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-700 mb-1">
+              Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}
+            </p>
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">
+              {FormatDate(trip.leaving_time.toLocaleString())}
+            </p>
+            <p className="text-xs sm:text-sm text-gray-800">
+              <strong>Seats Available:</strong> {trip.seats_available}
+            </p>
+          </div>
+          {tripSelected === trip && (
+            <button
+              className="mt-2 p-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={(e) => handleTripJoin(e,trip)}
+            >
+              Join Trip
+            </button>
+          )}
+        </button>
+        
+      </div>
     ))
   ) : (
     <p className="text-center text-gray-600">No friend trips available.</p>
@@ -160,16 +183,36 @@ export default function Home() {
   
   const ptList = publicTrips !== null && publicTrips.length > 0 ? (
     publicTrips.map((trip, index) => (
-      <button
-        key={index}
-        className="w-full text-left p-2 sm:p-4 bg-white border border-gray-300 mb-2 sm:mb-3 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        onClick={handleTripClick(trip)}
-      >
-        <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
-        <p className="text-xs sm:text-sm text-gray-700 mb-1">Driver: {trip.driver.first_name} • Trips taken: {trip.driver.trips_taken}</p>
-        <p className="text-xs sm:text-sm text-gray-600 mb-1">{FormatDate(trip.leaving_time.toLocaleString())}</p>
-        <p className="text-xs sm:text-sm text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>
-      </button>
+      <div key={index} className="mb-2 sm:mb-3">
+        <button
+          className="w-full text-left p-2 sm:p-4 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onClick={() => handleTripClick(trip)}
+        >
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold mb-1">
+              {trip.original_location} <strong>to</strong> {trip.destination}
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-700 mb-1">
+              Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}
+            </p>
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">
+              {FormatDate(trip.leaving_time.toLocaleString())}
+            </p>
+            <p className="text-xs sm:text-sm text-gray-800">
+              <strong>Seats Available:</strong> {trip.seats_available}
+            </p>
+          </div>
+          {tripSelected === trip && (
+            <button
+              className="mt-2 p-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={(e) => handleTripJoin(e,trip)}
+            >
+              Join Trip
+            </button>
+          )}
+        </button>
+        
+      </div>
     ))
   ) : (
     <p className="text-center text-gray-600">No public trips available.</p>

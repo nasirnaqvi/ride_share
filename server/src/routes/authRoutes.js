@@ -147,6 +147,14 @@ module.exports = function (sessionSecret) {
     }
   });
 
+  router.get('/isLoggedIn', (req, res) => {
+    if (req.session.username) {
+      res.status(200).json({ isLoggedIn: true });
+    } else {
+      res.status(200).json({ isLoggedIn: false });
+    }
+  });
+
   // Authentication Middleware
   const authenticate = (req, res, next) => {
     const authToken = req.cookies.authtoken;

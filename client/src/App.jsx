@@ -13,7 +13,7 @@ export default function App() {
   const [signedIn, setSignedIn] = useState(false)
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/isLoggedIn`, {withCredentials: true})
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/isLoggedIn`, {withCredentials: true})
       .then(response => {
         setSignedIn(response.data.isLoggedIn)
       })
