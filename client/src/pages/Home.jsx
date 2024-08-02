@@ -21,6 +21,7 @@ export default function Home() {
   //States
   const [friendTrips, setFriendTrips] = useState([]);
   const [publicTrips, setPublicTrips] = useState([]);
+  const [tripRequests, setTripRequests] = useState([]);
   const [lng, setLng] = useState(-70.9);
   const [lat, setLat] = useState(38.35);
   const [zoom, setZoom] = useState(9);
@@ -130,6 +131,17 @@ export default function Home() {
         console.log(error)
       })
   }, []);
+
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTripRequests`, {withCredentials: true})
+      .then(response => {
+        const trip_requests = response.data;
+        setTripRequests(trip_requests);
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }, []);
   // #endregion
 
   // #region handleTripClick
@@ -145,8 +157,16 @@ export default function Home() {
     }
   }
 
-  const handleTripJoin = (trip) => {
-    console.log('joining trip', trip);
+  const handleTripJoin = (e, trip) => {
+    e.stopPropagation();
+
+    axios.post(`${import.meta.env.VITE_BACKEND_URL}/trip/requestTrip`, {trip_id: trip.trip_id}, {withCredentials: true})
+      .then(response => {
+        setTripRequests([...tripRequests, {trip_id: trip.trip_id, request_status: 'pending'}]);
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
   // #endregion
 
@@ -175,15 +195,42 @@ export default function Home() {
             </p>
           </div>
           {tripSelected === trip && (
-            <a
-              className="mt-2 inline-block px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              onClick={() => handleTripJoin(trip)}
-            >
-              Request to Join
-            </a>
+            <>
+              {tripRequests.some(request => request.trip_id === trip.trip_id && request.request_status === 'pending') && (  
+                <a
+                  className="mt-2 inline-block px-4 py-2 bg-yellow-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Pending
+                </a>
+              )}
+              {tripRequests.some(request => request.trip_id === trip.trip_id && request.request_status === 'accepted') && (  
+                <a
+                  className="mt-2 inline-block px-4 py-2 bg-green-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Accepted
+                </a>
+              )}
+              {tripRequests.some(request => request.trip_id === trip.trip_id && request.request_status === 'rejected') && (  
+                <a
+                  className="mt-2 inline-block px-4 py-2 bg-red-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Rejected
+                </a>
+              )}
+              {!tripRequests.some(request => request.trip_id === trip.trip_id && (request.request_status === 'pending' || request.request_status === 'accepted' || request.request_status === 'rejected')) && (
+                <a
+                  className="mt-2 inline-block px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                  onClick={(e) => handleTripJoin(e, trip)}
+                >
+                  Join
+                </a>
+              )}
+            </>
           )}
         </button>
-        
       </div>
     ))
   ) : (
@@ -212,12 +259,40 @@ export default function Home() {
             </p>
           </div>
           {tripSelected === trip && (
-            <a
-              className="mt-2 inline-block px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              onClick={() => handleTripJoin(trip)}
-            >
-              Request to Join
-            </a>
+            <>
+              {tripRequests.some(request => request.trip_id === trip.trip_id && request.request_status === 'pending') && (  
+                <a
+                  className="mt-2 inline-block px-4 py-2 bg-yellow-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Pending
+                </a>
+              )}
+              {tripRequests.some(request => request.trip_id === trip.trip_id && request.request_status === 'accepted') && (  
+                <a
+                  className="mt-2 inline-block px-4 py-2 bg-green-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Accepted
+                </a>
+              )}
+              {tripRequests.some(request => request.trip_id === trip.trip_id && request.request_status === 'rejected') && (  
+                <a
+                  className="mt-2 inline-block px-4 py-2 bg-red-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Rejected
+                </a>
+              )}
+              {!tripRequests.some(request => request.trip_id === trip.trip_id && (request.request_status === 'pending' || request.request_status === 'accepted' || request.request_status === 'rejected')) && (
+                <a
+                  className="mt-2 inline-block px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                  onClick={(e) => handleTripJoin(e, trip)}
+                >
+                  Join
+                </a>
+              )}
+            </>
           )}
         </button>
       </div>

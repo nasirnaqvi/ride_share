@@ -10,6 +10,7 @@ VALUES
 -- Demo trip data for initialization
 INSERT INTO trips (driver_id, destination, original_location, active, payment_req, leaving_time, max_passengers, public)
 VALUES ('user1', 'Boulder', 'Denver', TRUE, TRUE, '2024-06-01 10:00:00', 3, TRUE),
+       ('user1', 'San Antonio', 'Austin', FALSE, TRUE, '2024-06-01 10:00:00', 3, TRUE),
        ('user2', 'San Antonio', 'Denver', TRUE, FALSE, '2024-06-02 08:30:00', 4, TRUE),
        ('user3', 'Longmont', 'Denver', TRUE, TRUE, '2024-06-03 11:45:00', 5, FALSE),
        ('user4', 'Red Rocks Amphitheater', 'Boulder', FALSE, TRUE, '2024-06-04 09:15:00', 2, TRUE),
@@ -25,3 +26,9 @@ VALUES ('user1', 'user3', 'accepted'),
 INSERT INTO passengers (trip_id, passenger)
 VALUES (1, 'user2'),
        (1, 'user3');
+
+-- Demo trip request data for initialization
+INSERT INTO trip_requests (trip_id, requester_id, request_status)
+VALUES (3, 'user1', 'pending'),
+       (3, 'user2', 'accepted'),
+       (3, 'user3', 'rejected');

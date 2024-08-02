@@ -17,6 +17,7 @@ module.exports = function () {
                         FROM trips
                         JOIN users ON trips.driver_id = users.username
                             WHERE public = false 
+                            AND active = true
                             AND driver_id IN (
                                 SELECT user1_id FROM friendships 
                                     WHERE user2_id = $1 
@@ -36,15 +37,68 @@ module.exports = function () {
                             trips.*, 
                             users.first_name,
                             users.last_name,
-                            users.trips_taken 
+                            users.trips_taken
                         FROM trips
-                        JOIN users ON trips.driver_id = users.username 
-                            WHERE public = TRUE`;
+                        JOIN users ON trips.driver_id = users.username
+                            WHERE public = true
+                            AND active = true`;
         const response = await db.query(query, []);
         res.status(200).json(response);
     });
 
+    router.get('/getPendingTrips', async (req, res) => {
+        const username = req.session.username;
 
+        const query = `SELECT 
+                            trips.*,
+                            users.first_name,
+                            users.last_name,
+                            users.trips_taken
+                        FROM trips
+                        JOIN users ON trips.driver_id = users.username
+                            WHERE active = true
+                            AND driver_id = $1`;
+         
+        const response = await db.query(query, [username]);
+        res.status(200).json(response);
+    });
+
+    router.post('/requestTrip', async (req, res) => {
+        const { trip_id } = req.body;
+        const username = req.session.username;
+
+        const query = `INSERT INTO trip_requests (requester_id, trip_id, request_status) 
+                        VALUES ($1, $2, 'pending')`;
+        const response = await db.query(query, [username, trip_id]);
+        res.status(200).json(response);
+    });
+
+    router.get('/getCompletedTrips', async (req, res) => {
+        const username = req.session.username;
+
+        const query = `SELECT 
+                            trips.*,
+                            users.first_name,
+                            users.last_name,
+                            users.trips_taken
+                        FROM trips
+                        JOIN users ON trips.driver_id = users.username
+                            WHERE active = false
+                            AND driver_id = $1`;
+         
+        const response = await db.query(query, [username]);
+        res.status(200).json(response);
+    });
+
+    router.get('/getTripRequests', async (req, res) => {
+        const username = req.session.username;
+
+        const query = `SELECT trip_id, request_status FROM trip_requests WHERE requester_id = $1`;
+         
+        const response = await db.query(query, [username]);
+        console.log(response);
+        res.status(200).json(response);
+    });
 
 
     //Returns an an array with two items: "friend_trips" and "others"

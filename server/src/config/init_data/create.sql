@@ -16,12 +16,19 @@ CREATE TABLE IF NOT EXISTS trips (
   driver_id VARCHAR(50) REFERENCES users(username), 
   destination VARCHAR(255),
   original_location VARCHAR(255),
-  active BOOLEAN,
+  active BOOLEAN DEFAULT TRUE,
   payment_req BOOLEAN,
   leaving_time TIMESTAMP,
   max_passengers INTEGER,
   current_passengers INTEGER DEFAULT 0,
   public BOOLEAN
+);
+
+CREATE TABLE IF NOT EXISTS trip_requests (
+  trip_request_id SERIAL PRIMARY KEY,
+  trip_id INTEGER REFERENCES trips(trip_id),
+  requester_id VARCHAR(50) REFERENCES users(username),
+  request_status VARCHAR(20) NOT NULL -- "pending", "accepted", "rejected", etc.
 );
 
 -- Create the passengers table
