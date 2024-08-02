@@ -26,7 +26,12 @@ export default function App() {
     <Router> 
       <Routes>
         <Route element={<Layout signedIn={signedIn}/>}>
-          <Route path="/" element={<Home />} />
+        <Route path="/" element={
+            <ProtectedRoute signedIn={signedIn}>
+              <Home />
+            </ProtectedRoute>
+            } 
+          />
           <Route path="/login" element={<Login setSignedIn={() => setSignedIn(true)}/>} />
           <Route path="/profile" element={
             <ProtectedRoute signedIn={signedIn}>
