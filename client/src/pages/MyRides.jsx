@@ -8,16 +8,26 @@ export default function MyRides() {
 	const [publicTrips, setPublicTrips] = useState([]);
 
 	useEffect(() => {
-		axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTrips`, {withCredentials: true})
-			.then(response => {
-				const { friend_trips, public_trips } = response.data;
-				setFriendTrips(friend_trips);
-				setPublicTrips(public_trips);
-			})
-			.catch(error => {
-				console.log(error)
-			})
-	}, []);
+		axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getFriendTrips`, {withCredentials: true})
+		  .then(response => {
+			const friend_trips = response.data;
+			setFriendTrips(friend_trips);
+		  })
+		  .catch(error => {
+			console.log(error)
+		  })
+	  }, []);
+	
+	  useEffect(() => {
+		axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getPublicTrips`)
+		  .then(response => {
+			const public_trips = response.data;
+			setPublicTrips(public_trips);
+		  })
+		  .catch(error => {
+			console.log(error)
+		  })
+	  }, []);
 
 	const ftList = friendTrips !== null && friendTrips.length > 0 ? (
 		friendTrips.map((trip, index) => (
@@ -28,9 +38,9 @@ export default function MyRides() {
 			>
 				<div>
 					<h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
-					<p className="text-xs sm:text-sm md:text-base text-gray-700 mb-1">Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}</p>
+					<p className="text-xs sm:text-sm md:text-base text-gray-700 mb-1">Driver: {trip.first_name} {trip.last_name} • Trips taken: {trip.trips_taken}</p>
 					<p className="text-xs sm:text-sm md:text-base text-gray-600 mb-1">{FormatDate(trip.leaving_time.toLocaleString())}</p>
-					<p className="text-xs sm:text-sm md:text-base text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>
+					<p className="text-xs sm:text-sm md:text-base text-gray-800"><strong>Seats Available:</strong> {trip.max_passengers - trip.current_passengers}</p>
 				</div>
 			</button>
 		))
@@ -46,9 +56,9 @@ export default function MyRides() {
 				onClick={() => console.log('Trip clicked', trip)}
 			>
 				<h3 className="text-base sm:text-lg md:text-xl font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
-				<p className="text-xs sm:text-sm md:text-base text-gray-700 mb-1">Driver: {trip.driver.first_name} • Trips taken: {trip.driver.trips_taken}</p>
+				<p className="text-xs sm:text-sm md:text-base text-gray-700 mb-1">Driver: {trip.first_name} {trip.last_name} • Trips taken: {trip.trips_taken}</p>
 				<p className="text-xs sm:text-sm md:text-base text-gray-600 mb-1">{FormatDate(trip.leaving_time.toLocaleString())}</p>
-				<p className="text-xs sm:text-sm md:text-base text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>
+				<p className="text-xs sm:text-sm md:text-base text-gray-800"><strong>Seats Available:</strong> {trip.max_passengers - trip.current_passengers}</p>
 			</button>
 		))
 	) : (
@@ -64,7 +74,6 @@ export default function MyRides() {
 				<div className="md:w-1/2">
 					<h2 className="text-xl md:text-2xl mt-3 mb-1">Pending Trips:</h2>
 					<div className="max-h-54 md:max-h-96 overflow-auto scrollbar p-2 sm:p-4">
-						{ftList}
 						{ptList}
 					</div>
 				</div>
@@ -73,7 +82,6 @@ export default function MyRides() {
 					<h2 className="text-xl md:text-2xl mt-3 mb-1">Completed Trips:</h2>
 					<div className="max-h-54 md:max-h-96 overflow-auto scrollbar p-2 sm:p-4">
 						{ftList}
-						{ptList}
 					</div>
 				</div>
 			</div>

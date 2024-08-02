@@ -110,10 +110,20 @@ export default function Home() {
 
   // #region getting trips
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getTrips`, {withCredentials: true})
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getFriendTrips`, {withCredentials: true})
       .then(response => {
-        const { friend_trips, public_trips } = response.data;
+        const friend_trips = response.data;
         setFriendTrips(friend_trips);
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }, []);
+
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getPublicTrips`)
+      .then(response => {
+        const public_trips = response.data;
         setPublicTrips(public_trips);
       })
       .catch(error => {
@@ -135,8 +145,7 @@ export default function Home() {
     }
   }
 
-  const handleTripJoin = (e, trip) => {
-    e.stopPropagation();
+  const handleTripJoin = (trip) => {
     console.log('joining trip', trip);
   }
   // #endregion
@@ -156,22 +165,22 @@ export default function Home() {
               {trip.original_location} <strong>to</strong> {trip.destination}
             </h3>
             <p className="text-xs sm:text-sm text-gray-700 mb-1">
-              Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}
+              Driver: {trip.first_name} {trip.last_name} • Trips taken: {trip.trips_taken}
             </p>
             <p className="text-xs sm:text-sm text-gray-600 mb-1">
               {FormatDate(trip.leaving_time.toLocaleString())}
             </p>
             <p className="text-xs sm:text-sm text-gray-800">
-              <strong>Seats Available:</strong> {trip.seats_available}
+              <strong>Seats Available:</strong> {trip.max_passengers - trip.current_passengers}
             </p>
           </div>
           {tripSelected === trip && (
-            <button
-              className="mt-2 p-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onClick={(e) => handleTripJoin(e,trip)}
+            <a
+              className="mt-2 inline-block px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              onClick={() => handleTripJoin(trip)}
             >
-              Join Trip
-            </button>
+              Request to Join
+            </a>
           )}
         </button>
         
@@ -193,25 +202,24 @@ export default function Home() {
               {trip.original_location} <strong>to</strong> {trip.destination}
             </h3>
             <p className="text-xs sm:text-sm text-gray-700 mb-1">
-              Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}
+              Driver: {trip.first_name} {trip.last_name} • Trips taken: {trip.trips_taken}
             </p>
             <p className="text-xs sm:text-sm text-gray-600 mb-1">
               {FormatDate(trip.leaving_time.toLocaleString())}
             </p>
             <p className="text-xs sm:text-sm text-gray-800">
-              <strong>Seats Available:</strong> {trip.seats_available}
+              <strong>Seats Available:</strong> {trip.max_passengers - trip.current_passengers}
             </p>
           </div>
           {tripSelected === trip && (
-            <button
-              className="mt-2 p-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onClick={(e) => handleTripJoin(e,trip)}
+            <a
+              className="mt-2 inline-block px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              onClick={() => handleTripJoin(trip)}
             >
-              Join Trip
-            </button>
+              Request to Join
+            </a>
           )}
         </button>
-        
       </div>
     ))
   ) : (

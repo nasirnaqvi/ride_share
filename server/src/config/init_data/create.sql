@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS trips (
   payment_req BOOLEAN,
   leaving_time TIMESTAMP,
   max_passengers INTEGER,
-  current_passengers INTEGER DEFAULT 0
+  current_passengers INTEGER DEFAULT 0,
+  public BOOLEAN
 );
 
 -- Create the passengers table
