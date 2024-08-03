@@ -26,6 +26,8 @@ export default function Home() {
   const [lat, setLat] = useState(38.35);
   const [zoom, setZoom] = useState(9);
   const [tripSelected, setTripSelected] = useState(null);
+  const [routeLoaded, setRouteLoaded] = useState(false);
+  const [tripAddOpen, setTripAddOpen] = useState(false);
 
 
   // #region Location-Tracking
@@ -168,6 +170,22 @@ export default function Home() {
         console.log(error);
       });
   }
+
+  const handleTripAddClick = () => {
+    setTripAddOpen(true);
+    handleTripAdd();
+  }
+
+  const handleBackgroundClick = () => {
+    setTripAddOpen(false);
+  }
+
+  const handleTripAdd = () => {
+    const origin = directionsRef.current.container.children[0].children[0].children[0].children[0].children[1].children[0].children[1].value;
+    const destination = directionsRef.current.container.children[0].children[0].children[0].children[2].children[1].children[0].children[1].value;
+    
+    console.log(origin, destination);
+  }
   // #endregion
 
 
@@ -306,6 +324,12 @@ export default function Home() {
     <div id="main" className="flex flex-col lg:flex-row overflow-hidden home-sm md:home-md">
       <div id="map-container" className="relative flex-grow overflow-hidden lg:w-3/4 w-full">
         <div id="map" ref={mapContainerRef} className="w-full h-full"></div>
+        <button
+          className="absolute top-24 left-28 px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          onClick={handleTripAddClick}
+        >
+          Add Trip
+        </button>
       </div>
       <div id="panel" className="bg-white p-4 lg:w-1/4 w-full lg:h-auto h-1/4 overflow-auto">
         <div>
@@ -319,6 +343,19 @@ export default function Home() {
           </ul>
         </div>
       </div>
+      {tripAddOpen && (
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+          onClick={handleBackgroundClick} // Add this line
+        >
+          <input
+            type="text"
+            className="px-4 py-2 bg-white text-black rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter something..."
+            onClick={(e) => e.stopPropagation()} // Add this line to prevent the input click from triggering the background click
+          />
+        </div>
+      )}
     </div>
   );
 }
