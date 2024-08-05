@@ -26,8 +26,8 @@ export default function Home() {
   const [lat, setLat] = useState(38.35);
   const [zoom, setZoom] = useState(9);
   const [tripSelected, setTripSelected] = useState(null);
-  const [routeLoaded, setRouteLoaded] = useState(false);
   const [tripAddOpen, setTripAddOpen] = useState(false);
+  const [tripForm, setTripForm] = useState(null);
 
 
   // #region Location-Tracking
@@ -124,7 +124,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getPublicTrips`)
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getPublicTrips`, {withCredentials: true})
       .then(response => {
         const public_trips = response.data;
         setPublicTrips(public_trips);
@@ -172,23 +172,45 @@ export default function Home() {
   }
 
   const handleTripAddClick = () => {
+    const origin = directionsRef.current.container.children[0].children[0].children[0].children[0].children[1].children[0].children[1].value;
+    const destination = directionsRef.current.container.children[0].children[0].children[0].children[2].children[1].children[0].children[1].value;
+
+    if (origin === '' || destination === '') {
+      return;
+    }
+
+    setTripForm({
+      origin: origin,
+      destination: destination,
+      leaving_time: new Date().toISOString().slice(0, 16),
+      max_passengers: 1,
+      trip_type: 'public'
+    });
     setTripAddOpen(true);
-    handleTripAdd();
   }
 
   const handleBackgroundClick = () => {
     setTripAddOpen(false);
   }
 
-  const handleTripAdd = () => {
-    const origin = directionsRef.current.container.children[0].children[0].children[0].children[0].children[1].children[0].children[1].value;
-    const destination = directionsRef.current.container.children[0].children[0].children[0].children[2].children[1].children[0].children[1].value;
-    
-    console.log(origin, destination);
+  const handleTripAdd = (e) => {
+    e.preventDefault();
+
+    axios.post(`${import.meta.env.VITE_BACKEND_URL}/trip/addTrip`, tripForm, {withCredentials: true})
+      .then(response => {
+        setTripAddOpen(false);
+        setTripForm(null);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+  const handleTripFormChange = (e) => {
+    const { name, value } = e.target;
+    setTripForm({ ...tripForm, [name]: value });
   }
   // #endregion
-
-
 
   // #region convert trips to JSX
   const ftList = friendTrips !== null && friendTrips.length > 0 ? (
@@ -346,14 +368,82 @@ export default function Home() {
       {tripAddOpen && (
         <div
           className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
-          onClick={handleBackgroundClick} // Add this line
+          onClick={handleBackgroundClick}
         >
-          <input
-            type="text"
-            className="px-4 py-2 bg-white text-black rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter something..."
-            onClick={(e) => e.stopPropagation()} // Add this line to prevent the input click from triggering the background click
-          />
+          <form
+            className="px-8 py-6 bg-white text-black rounded-lg shadow-md"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => handleTripAdd(e)} 
+          >
+            <div className="mb-4">
+              <label htmlFor='origin' className="block text-sm font-medium text-gray-700">Origin</label>
+              <input
+                type="text"
+                name="origin"
+                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter origin"
+                value={tripForm.origin}
+                onChange={handleTripFormChange}
+                disabled
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor='destination' className="block text-sm font-medium text-gray-700">Destination</label>
+              <input
+                type="text"
+                name="destination"
+                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter destination"
+                value={tripForm.destination}
+                onChange={handleTripFormChange}
+                disabled
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor='leaving_time' className="block text-sm font-medium text-gray-700">Leaving Time</label>
+              <input
+                type="datetime-local"
+                name="leaving_time"
+                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={tripForm.leaving_time}
+                onChange={handleTripFormChange}
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor='max_passengers' className="block text-sm font-medium text-gray-700">Max Passengers</label>
+              <input
+                type="number"
+                name="max_passengers"
+                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min="1"
+                value={tripForm.max_passengers}
+                onChange={handleTripFormChange}
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor='trip_type' className="block text-sm font-medium text-gray-700">Trip Type</label>
+              <select
+                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                name="trip_type"
+                value={tripForm.trip_type}
+                onChange={handleTripFormChange}
+                required
+              >
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
