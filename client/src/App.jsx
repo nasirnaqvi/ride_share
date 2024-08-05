@@ -13,7 +13,7 @@ export default function App() {
   const [signedIn, setSignedIn] = useState(false)
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/isLoggedIn`, {withCredentials: true})
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/isLoggedIn`, {withCredentials: true})
       .then(response => {
         setSignedIn(response.data.isLoggedIn)
       })
@@ -26,7 +26,12 @@ export default function App() {
     <Router> 
       <Routes>
         <Route element={<Layout signedIn={signedIn}/>}>
-          <Route path="/" element={<Home />} />
+        <Route path="/" element={
+            <ProtectedRoute signedIn={signedIn}>
+              <Home />
+            </ProtectedRoute>
+            } 
+          />
           <Route path="/login" element={<Login setSignedIn={() => setSignedIn(true)}/>} />
           <Route path="/profile" element={
             <ProtectedRoute signedIn={signedIn}>
