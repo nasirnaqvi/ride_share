@@ -23,9 +23,9 @@ VALUES ('user1', 'user3', 'accepted'),
        ('user2', 'user4', 'accepted');
 
 -- Demo passenger data for initialization
-INSERT INTO passengers (trip_id, passenger)
-VALUES (1, 'user2'),
-       (1, 'user3');
+-- INSERT INTO passengers (trip_id, passenger)
+-- VALUES (1, 'user2'),
+--        (1, 'user3');
 
 -- Demo trip request data for initialization
 INSERT INTO trip_requests (trip_id, requester_id, request_status)

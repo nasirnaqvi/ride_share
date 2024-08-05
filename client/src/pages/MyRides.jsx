@@ -1,23 +1,27 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import FormatDate from '../utility/FormatDate';
+import { formatDateTimeLocal } from '../utility/FormatDate';
 
 export default function MyRides() {
 
 	const [rideRequests, setRideRequests] = useState([]);
 	const [pendingTrips, setPendingTrips] = useState([]);
 	const [completedTrips, setCompletedTrips] = useState([]);
+	const [acceptedOrRejected, setAcceptedOrRejected] = useState(false);
+	const [tripViewOpen, setTripViewOpen] = useState(false);
+	const [tripDetails, setTripDetails] = useState({});
+	const [tripDeleted, setTripDeleted] = useState(false);
 
 	useEffect(() => {
 		axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getRideRequests`, {withCredentials: true})
 		  .then(response => {
-			console.log(response.data);
 			setRideRequests(response.data);
 		  })
 		  .catch(error => {
 			console.log(error)
 		  })
-	  }, []);
+	  }, [acceptedOrRejected]);
 
 	useEffect(() => {
 		axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getPendingTrips`, {withCredentials: true})
@@ -27,7 +31,7 @@ export default function MyRides() {
 		  .catch(error => {
 			console.log(error)
 		  })
-	  }, []);
+	  }, [tripDeleted]);
 	
 	useEffect(() => {
 		axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/getCompletedTrips`, {withCredentials: true})
@@ -37,7 +41,49 @@ export default function MyRides() {
 		  .catch(error => {
 			console.log(error)
 		  })
-	}, []);
+	}, [tripDeleted]);
+
+	const handleRequestAccept = (request) => {
+		axios.post(`${import.meta.env.VITE_BACKEND_URL}/trip/acceptRequest`, {trip_id: request.trip_id, requester_id: request.requester_id})
+		  .then(response => {
+			setAcceptedOrRejected(prevAcceptedOrRejected => !prevAcceptedOrRejected);
+		  })
+		  .catch(error => {
+			console.log(error)
+		  })
+	};
+
+	const handleRequestReject = (request) => {
+		axios.post(`${import.meta.env.VITE_BACKEND_URL}/trip/rejectRequest`, {trip_id: request.trip_id, requester_id: request.requester_id})
+		  .then(response => {
+			setAcceptedOrRejected(prevAcceptedOrRejected => !prevAcceptedOrRejected);
+		  })
+		  .catch(error => {
+			console.log(error)
+		  })
+	};
+
+	const viewTripDetails = (trip) => {
+		setTripViewOpen(true);
+		setTripDetails(trip);
+	};
+
+	const handleBackgroundClick = () => {
+		setTripViewOpen(false);
+		setTripDetails({});
+	};
+
+	const handleDeleteTrip = (trip) => {
+		axios.post(`${import.meta.env.VITE_BACKEND_URL}/trip/deleteTrip`, {trip_id: trip.trip_id})
+		  .then(response => {
+			setTripViewOpen(false);
+			setTripDetails({});
+			setTripDeleted(prevTripDeleted => !prevTripDeleted);
+		  })
+		  .catch(error => {
+			console.log(error)
+		  })
+	};
 
 	const rrList = rideRequests !== null && rideRequests.length > 0 ? (
 		<div className="flex flex-row space-x-4">
@@ -63,13 +109,13 @@ export default function MyRides() {
 			  <div className="flex justify-center space-x-1">
 				<button
 				  className="px-2 py-1 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
-				  onClick={() => console.log('Accept clicked', request)}
+				  onClick={() => handleRequestAccept(request)}
 				>
 				  Accept
 				</button>
 				<button
 				  className="px-2 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-				  onClick={() => console.log('Reject clicked', request)}
+				  onClick={() => handleRequestReject(request)}
 				>
 				  Reject
 				</button>
@@ -96,7 +142,7 @@ export default function MyRides() {
 			  <p className="text-xs text-gray-800 mb-2"><strong>Seats Available:</strong> {trip.max_passengers - trip.current_passengers}</p>
 			  <button
 				className="px-2 py-1 mx-auto bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-				onClick={() => console.log('Trip clicked', trip)}
+				onClick={() => viewTripDetails(trip)}
 			  >
 				View Details
 			  </button>
@@ -122,7 +168,7 @@ export default function MyRides() {
 			  <p className="text-xs text-gray-800 mb-2"><strong>Seats Available:</strong> {trip.max_passengers - trip.current_passengers}</p>
 			  <button
 				className="px-2 py-1 mx-auto bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-				onClick={() => console.log('Trip clicked', trip)}
+				onClick={() => viewTripDetails(trip)}
 			  >
 				View Details
 			  </button>
@@ -160,6 +206,74 @@ export default function MyRides() {
 					</div>
 				</div>
 			</div>
+
+			{tripViewOpen && (
+				<div
+					className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+					onClick={handleBackgroundClick}
+				>
+					<div
+						className="px-8 py-6 bg-white text-black rounded-lg shadow-md"
+						onClick={(e) => e.stopPropagation()}
+					>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">Origin</label>
+							<input
+								type="text"
+								className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+								value={tripDetails.original_location}
+								disabled
+							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">Destination</label>
+							<input
+								type="text"
+								className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+								value={tripDetails.destination}
+								disabled
+							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">Leaving Time</label>
+							<input
+								type="datetime-local"
+								className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+								value={formatDateTimeLocal(tripDetails.leaving_time)}
+								disabled
+							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">Max Passengers</label>
+							<input
+								type="number"
+								className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+								value={tripDetails.max_passengers}
+								disabled
+							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">Trip Type</label>
+							<select
+								className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+								value={tripDetails.trip_type}
+								disabled
+							>
+							<option value="public">Public</option>
+							<option value="private">Private</option>
+							</select>
+						</div>
+						<div className="flex justify-center">
+							<button
+								className="px-4 py-2 bg-red-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+								onClick={() => handleDeleteTrip(tripDetails)}
+							>
+								Delete Trip
+							</button>
+						</div>
+					</div>
+				</div>
+				)}
 		</div>
 	);
 }

@@ -84,12 +84,55 @@ module.exports = function () {
         res.status(200).json(response);
     });
 
+    router.get('/getRideRequests', async (req, res) => {
+        const username = req.session.username;
+
+        const query = `SELECT 
+                            trip_requests.trip_id,
+                            trips.destination,
+                            trips.original_location,
+                            trips.leaving_time,
+                            trips.max_passengers,
+                            trips.current_passengers,
+                            trips.public,
+                            trip_requests.request_status,
+                            trip_requests.requester_id,
+                            users.first_name,
+                            users.last_name,
+                            users.trips_taken,
+                            users.profile_img
+                        FROM trip_requests
+                        JOIN trips ON trip_requests.trip_id = trips.trip_id
+                        JOIN users ON trip_requests.requester_id = users.username
+                            WHERE trips.driver_id = $1
+                            AND trip_requests.request_status = 'pending'`;
+         
+        const response = await db.query(query, [username]);
+        res.status(200).json(response);
+    });
+
     router.get('/getTripRequests', async (req, res) => {
         const username = req.session.username;
 
         const query = `SELECT trip_id, request_status FROM trip_requests WHERE requester_id = $1`;
          
         const response = await db.query(query, [username]);
+        res.status(200).json(response);
+    });
+
+    router.post('/acceptRequest', async (req, res) => {
+        const { trip_id, requester_id } = req.body;
+
+        const query = `UPDATE trip_requests SET request_status = 'accepted' WHERE requester_id = $1 AND trip_id = $2`;
+        const response = await db.query(query, [requester_id, trip_id]);
+        res.status(200).json(response);
+    });
+
+    router.post('/rejectRequest', async (req, res) => {
+        const { trip_id, requester_id } = req.body;
+
+        const query = `UPDATE trip_requests SET request_status = 'rejected' WHERE requester_id = $1 AND trip_id = $2`;
+        const response = await db.query(query, [requester_id, trip_id]);
         res.status(200).json(response);
     });
 
@@ -122,32 +165,16 @@ module.exports = function () {
         res.status(200).json("Trip added successfully");
     });
 
-    router.get('/getRideRequests', async (req, res) => {
-        const username = req.session.username;
+    router.post('/deleteTrip', async (req, res) => {
+        const { trip_id } = req.body;
 
-        const query = `SELECT 
-                            trip_requests.trip_id,
-                            trips.destination,
-                            trips.original_location,
-                            trips.leaving_time,
-                            trips.max_passengers,
-                            trips.current_passengers,
-                            trips.public,
-                            trip_requests.request_status,
-                            users.first_name,
-                            users.last_name,
-                            users.trips_taken,
-                            users.profile_img
-                        FROM trip_requests
-                        JOIN trips ON trip_requests.trip_id = trips.trip_id
-                        JOIN users ON trip_requests.requester_id = users.username
-                            WHERE trips.driver_id = $1
-                            AND trip_requests.request_status = 'pending'`;
-         
-        const response = await db.query(query, [username]);
-        console.log(response);
-        res.status(200).json(response);
-    });
+        const query1 = `DELETE FROM trip_requests WHERE trip_id = $1`;
+        const query2 = `DELETE FROM trips WHERE trip_id = $1`;
+
+        await db.query(query1, [trip_id]);
+        await db.query(query2, [trip_id]);
+        res.status(200).json("Trip deleted successfully");
+    });    
 
 
     //Returns an an array with two items: "friend_trips" and "others"

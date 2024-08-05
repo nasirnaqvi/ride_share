@@ -189,7 +189,7 @@ export default function Home() {
     setTripAddOpen(true);
   }
 
-  const handleBackgroundClick = () => {
+  const handleCloseFormClick = () => {
     setTripAddOpen(false);
   }
 
@@ -368,82 +368,85 @@ export default function Home() {
       {tripAddOpen && (
         <div
           className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
-          onClick={handleBackgroundClick}
         >
-          <form
-            className="px-8 py-6 bg-white text-black rounded-lg shadow-md"
-            onClick={(e) => e.stopPropagation()}
-            onSubmit={(e) => handleTripAdd(e)} 
-          >
-            <div className="mb-4">
-              <label htmlFor='origin' className="block text-sm font-medium text-gray-700">Origin</label>
-              <input
-                type="text"
-                name="origin"
-                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter origin"
-                value={tripForm.origin}
-                onChange={handleTripFormChange}
-                disabled
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor='destination' className="block text-sm font-medium text-gray-700">Destination</label>
-              <input
-                type="text"
-                name="destination"
-                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter destination"
-                value={tripForm.destination}
-                onChange={handleTripFormChange}
-                disabled
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor='leaving_time' className="block text-sm font-medium text-gray-700">Leaving Time</label>
-              <input
-                type="datetime-local"
-                name="leaving_time"
-                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={tripForm.leaving_time}
-                onChange={handleTripFormChange}
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor='max_passengers' className="block text-sm font-medium text-gray-700">Max Passengers</label>
-              <input
-                type="number"
-                name="max_passengers"
-                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min="1"
-                value={tripForm.max_passengers}
-                onChange={handleTripFormChange}
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor='trip_type' className="block text-sm font-medium text-gray-700">Trip Type</label>
-              <select
-                className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                name="trip_type"
-                value={tripForm.trip_type}
-                onChange={handleTripFormChange}
-                required
-              >
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-              </select>
-            </div>
-            <div className="flex justify-center">
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              >
-                Submit
-              </button>
-            </div>
-          </form>
+          <div className="relative px-8 py-6 bg-white text-black rounded-lg shadow-md">
+            <button
+              className="absolute top-2 right-3 text-gray-500 hover:text-gray-700 focus:outline-none text-3xl"
+              onClick={handleCloseFormClick}
+            >
+              &times;
+            </button>
+            <form onSubmit={(e) => handleTripAdd(e)}>
+              <div className="mb-4">
+                <label htmlFor="origin" className="block text-sm font-medium text-gray-700">Origin</label>
+                <input
+                  type="text"
+                  name="origin"
+                  className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter origin"
+                  value={tripForm.origin}
+                  onChange={handleTripFormChange}
+                  disabled
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="destination" className="block text-sm font-medium text-gray-700">Destination</label>
+                <input
+                  type="text"
+                  name="destination"
+                  className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter destination"
+                  value={tripForm.destination}
+                  onChange={handleTripFormChange}
+                  disabled
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="leaving_time" className="block text-sm font-medium text-gray-700">Leaving Time</label>
+                <input
+                  type="datetime-local"
+                  name="leaving_time"
+                  className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={tripForm.leaving_time}
+                  onChange={handleTripFormChange}
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="max_passengers" className="block text-sm font-medium text-gray-700">Max Passengers</label>
+                <input
+                  type="number"
+                  name="max_passengers"
+                  className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="1"
+                  value={tripForm.max_passengers}
+                  onChange={handleTripFormChange}
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="trip_type" className="block text-sm font-medium text-gray-700">Trip Type</label>
+                <select
+                  className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  name="trip_type"
+                  value={tripForm.trip_type}
+                  onChange={handleTripFormChange}
+                  required
+                >
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+              </div>
+              <div className="flex justify-center">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white font-semibold text-sm leading-tight rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
