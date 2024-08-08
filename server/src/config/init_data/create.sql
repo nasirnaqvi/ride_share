@@ -14,14 +14,17 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS trips (
   trip_id SERIAL PRIMARY KEY,
   driver_id VARCHAR(50) REFERENCES users(username), 
-  destination VARCHAR(255),
+  destination_location VARCHAR(255),
   original_location VARCHAR(255),
+  destination_latlong FLOAT[2],
+  original_latlong FLOAT[2],
   active BOOLEAN,
   payment_req BOOLEAN,
   leaving_time TIMESTAMP,
   max_passengers INTEGER,
   current_passengers INTEGER DEFAULT 0
 );
+
 
 -- Create the passengers table
 CREATE TABLE IF NOT EXISTS passengers (

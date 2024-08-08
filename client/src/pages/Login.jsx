@@ -33,9 +33,16 @@ export default function Login(props) {
             keepSignedIn: keepSignedIn
         },
         {withCredentials: true})
-        .then(() => {
-            props.setSignedIn()
-            navigate('/home')
+        .then(response => {
+            console.log('Login successful')
+            console.log("Response data", response.data);
+            const { token } = response.data; 
+            console.log(token);
+            if (token) {
+                localStorage.setItem('jwtToken', token);
+            }
+            props.setSignedIn();
+            navigate('/home');
         })
         .catch(() => {
             setFailedLogin(true)

@@ -8,19 +8,27 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
 import MyRides from './pages/MyRides'
+import Chat from './pages/Chat'
 
 export default function App() {
   const [signedIn, setSignedIn] = useState(false)
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_BACKEND_URL}/isLoggedIn`, {withCredentials: true})
       .then(response => {
-        setSignedIn(response.data.isLoggedIn)
+        setSignedIn(response.data.isLoggedIn);
       })
       .catch(error => {
-        console.log(error)
+        console.log(error);
       })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
+  if (loading) {
+    return <div>Loading...</div>; 
+  }
 
   return (
     <Router> 
@@ -40,6 +48,11 @@ export default function App() {
             </ProtectedRoute>
             } 
           />
+          <Route path="/chat" element={
+            <ProtectedRoute signedIn={signedIn}>
+              <Chat />
+            </ProtectedRoute>
+            }/>
           <Route path="*" element={<Navigate to="/" />} />
         </Route>
       </Routes>

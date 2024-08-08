@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const db = require('./../controllers/db.js');
+const db = require('../controllers/postgresDB.js');
 
 
 module.exports = function () {
@@ -33,8 +33,10 @@ module.exports = function () {
                 json_agg(
                     json_build_object(
                         'trip_id', pt.trip_id,
-                        'destination', pt.destination,
+                        'destination_location', pt.destination_location,
                         'original_location', pt.original_location,
+                        'destination_latlong', pt.destination_latlong,
+                        'original_latlong', pt.original_latlong,
                         'active', pt.active,
                         'payment_req', pt.payment_req,
                         'leaving_time', pt.leaving_time,
@@ -87,8 +89,10 @@ module.exports = function () {
                 json_agg(
                     json_build_object(
                         'trip_id', ft.trip_id,
-                        'destination', ft.destination,
+                        'destination_location', ft.destination_location,
                         'original_location', ft.original_location,
+                        'destination_latlong', ft.destination_latlong,
+                        'original_latlong', ft.original_latlong,
                         'active', ft.active,
                         'payment_req', ft.payment_req,
                         'leaving_time', ft.leaving_time,
@@ -141,8 +145,10 @@ module.exports = function () {
                 json_agg(
                     json_build_object(
                         'trip_id', pt.trip_id,
-                        'destination', pt.destination,
+                        'destination_location', pt.destination_location,
                         'original_location', pt.original_location,
+                        'destination_latlong', pt.destination_latlong,
+                        'original_latlong', pt.original_latlong,
                         'active', pt.active,
                         'payment_req', pt.payment_req,
                         'leaving_time', pt.leaving_time,
@@ -170,7 +176,6 @@ module.exports = function () {
             response.public_trips = pTrips[0].public_trips_result;
 
             // Send the response
-            console.log(response);
             res.status(200).json(response);
             return;
         } catch (error) {
@@ -181,11 +186,11 @@ module.exports = function () {
 
     router.post('/createTrip', async (req, res) => {
         try {
-            const { driver_id, destination, original_location, active, payment_req, leaving_time } = req.body;
+            const { driver_id, destination_location, original_location, active, payment_req, leaving_time } = req.body;
 
             const insertQuery = `
-            INSERT INTO trips (driver_id, destination, original_location, active, payment_req, leaving_time)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO trips (driver_id, destination_location, original_location, destination_latlong, original_latlong, active, payment_req, leaving_time)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *;
           `;
 
@@ -307,7 +312,6 @@ module.exports = function () {
             WHERE trips.trip_id = $1;
           `;
             const result = await db.query(tripQuery, [req.body.tripId]);
-            console.log(result);
 
             if (result.length === 0) {
                 return res.status(404).json({ error: 'Trip not found' });

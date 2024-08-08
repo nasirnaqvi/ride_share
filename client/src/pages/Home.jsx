@@ -124,16 +124,10 @@ export default function Home() {
 
   // #region handleTripClick
   const handleTripClick = (trip) => () => {
-    if (!tripClicked) {
-      directionsRef.current.setOrigin("Red Rocks Amphitheatre, Morrison, CO");
-      directionsRef.current.setDestination("Denver, CO");
-    }
-    else {
-      document.querySelector('.mapboxgl-directions-origin .mapboxgl-ctrl-geocoder input').value = '';
-      document.querySelector('.mapboxgl-directions-destination .mapboxgl-ctrl-geocoder input').value = '';
-      directionsRef.current.removeRoutes();
-    }
-    setTripClicked((prevSetTripClicked) => !prevSetTripClicked);
+
+    console.log(trip);
+    directionsRef.current.setOrigin(trip.original_latlong);
+    directionsRef.current.setDestination(trip.destination_latlong);
   }
   // #endregion
 
@@ -147,7 +141,7 @@ export default function Home() {
         onClick={handleTripClick(trip)}
       >
         <div>
-          <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
+          <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination_location}</h3>
           <p className="text-xs sm:text-sm text-gray-700 mb-1">Driver: {trip.driver.first_name} {trip.driver.last_name} • Trips taken: {trip.driver.trips_taken}</p>
           <p className="text-xs sm:text-sm text-gray-600 mb-1">{FormatDate(trip.leaving_time.toLocaleString())}</p>
           <p className="text-xs sm:text-sm text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>
@@ -165,7 +159,7 @@ export default function Home() {
         className="w-full text-left p-2 sm:p-4 bg-white border border-gray-300 mb-2 sm:mb-3 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
         onClick={handleTripClick(trip)}
       >
-        <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination}</h3>
+        <h3 className="text-base sm:text-lg font-semibold mb-1">{trip.original_location} <strong>to</strong> {trip.destination_location}</h3>
         <p className="text-xs sm:text-sm text-gray-700 mb-1">Driver: {trip.driver.first_name} • Trips taken: {trip.driver.trips_taken}</p>
         <p className="text-xs sm:text-sm text-gray-600 mb-1">{FormatDate(trip.leaving_time.toLocaleString())}</p>
         <p className="text-xs sm:text-sm text-gray-800"><strong>Seats Available:</strong> {trip.seats_available}</p>

@@ -10,6 +10,9 @@ export default function Navbar(props) {
             <Link to="/myrides" className="ml-3 md:ml-5 mt-1 md:text-xl">
                 MyRides
             </Link>
+            <Link to="/chat" className="ml-3 md:ml-5 mt-1 md:text-xl">
+                Chats 
+                </Link>
             <Link to="/profile" className="ml-auto mt-1 md:text-xl">
                 {props.signedIn ? 
                     <img src="/images/profile_icon.png" alt="Profile picture." className="w-10 md:w-12" />
