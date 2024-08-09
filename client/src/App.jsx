@@ -4,6 +4,7 @@ import axios from 'axios'
 
 import Layout from './routes/Layout'
 import ProtectedRoute from './routes/ProtectedRoute'
+import RedirectIfSignedIn from './routes/RedirectIfSignedIn'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
@@ -11,6 +12,8 @@ import MyRides from './pages/MyRides'
 
 export default function App() {
   const [signedIn, setSignedIn] = useState(false)
+  const [numberOfFriendRequests, setNumberOfFriendRequests] = useState(0)
+  const [numberOfRideRequests, setNumberOfRideRequests] = useState(0)
 
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/isLoggedIn`, {withCredentials: true})
@@ -22,26 +25,61 @@ export default function App() {
       })
   }, []);
 
+  useEffect(() => {
+    if (signedIn) {
+
+    }
+  }, [signedIn]);
+
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/getNumberOfFriendRequests`, {withCredentials: true})
+      .then(response => {
+        setNumberOfFriendRequests(response.data.count)
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }, [signedIn]);
+
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/getNumberOfRideRequests`, {withCredentials: true})
+      .then(response => {
+        setNumberOfRideRequests(response.data.count)
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }, [signedIn]);
+
   return (
     <Router> 
       <Routes>
-        <Route element={<Layout signedIn={signedIn}/>}>
+        <Route element={<Layout signedIn={signedIn} numberOfFriendRequests={numberOfFriendRequests} numberOfRideRequests={numberOfRideRequests}/>}>
         <Route path="/" element={
             <ProtectedRoute signedIn={signedIn}>
               <Home />
             </ProtectedRoute>
             } 
+        />
+          <Route path="/login" element={
+            <RedirectIfSignedIn signedIn={signedIn}>
+              <Login setSignedIn={() => setSignedIn(true)}/>
+            </RedirectIfSignedIn>
+            }
           />
-          <Route path="/login" element={<Login setSignedIn={() => setSignedIn(true)}/>} />
           <Route path="/profile" element={
             <ProtectedRoute signedIn={signedIn}>
-              <Profile setSignedIn={() => setSignedIn(false)}/>
+              <Profile 
+                setSignedIn={() => setSignedIn(false)} 
+                acceptFriendRequest={() => setNumberOfFriendRequests(prevNumberOfFriendRequests => prevNumberOfFriendRequests - 1)}
+                numberOfFriendRequests={numberOfFriendRequests}
+              />
             </ProtectedRoute>
             } 
           />
           <Route path="/myrides" element={
             <ProtectedRoute signedIn={signedIn}>
-              <MyRides />
+              <MyRides acceptRide={() => setNumberOfRideRequests(prevNumberOfRideRequests => prevNumberOfRideRequests - 1)}/>
             </ProtectedRoute>
             } 
           />
