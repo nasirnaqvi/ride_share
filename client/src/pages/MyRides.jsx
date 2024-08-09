@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import FormatDate from '../utility/FormatDate';
-import { formatDateTimeLocal } from '../utility/FormatDate';
+import FormatDate, {formatDateTimeLocal} from '../utility/FormatDate';
 
-export default function MyRides() {
+export default function MyRides(props) {
 
 	const [rideRequests, setRideRequests] = useState([]);
 	const [pendingTrips, setPendingTrips] = useState([]);
@@ -46,7 +45,8 @@ export default function MyRides() {
 	const handleRequestAccept = (request) => {
 		axios.post(`${import.meta.env.VITE_BACKEND_URL}/trip/acceptRequest`, {trip_id: request.trip_id, requester_id: request.requester_id})
 		  .then(response => {
-			setAcceptedOrRejected(prevAcceptedOrRejected => !prevAcceptedOrRejected);
+			setAcceptedOrRejected(prevAcceptedOrRejected => !prevAcceptedOrRejected)
+			props.acceptRide()
 		  })
 		  .catch(error => {
 			console.log(error)
@@ -194,14 +194,14 @@ export default function MyRides() {
 			<div className="md:flex md:space-x-4">
 				<div className="md:w-1/2">
 					<h2 className="text-xl md:text-2xl mt-3 mb-1">Pending Trips:</h2>
-					<div className="xl:flex xl:flex-wrap xl:justify-center max-h-54 md:max-h-96 overflow-auto scrollbar p-2 sm:p-4">
+					<div className="xl:flex xl:flex-wrap max-h-54 md:max-h-96 overflow-auto scrollbar p-2 sm:p-4">
 						{ptList}
 					</div>
 				</div>
 	
 				<div className="md:w-1/2">
 					<h2 className="text-xl md:text-2xl mt-3 mb-1">Completed Trips:</h2>
-					<div className="xl:flex xl:flex-wrap xl:justify-center max-h-54 md:max-h-96 overflow-auto scrollbar p-2 sm:p-4">
+					<div className="xl:flex xl:flex-wrap max-h-54 md:max-h-96 overflow-auto scrollbar p-2 sm:p-4">
 						{ctList}
 					</div>
 				</div>

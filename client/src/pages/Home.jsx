@@ -151,6 +151,8 @@ export default function Home() {
     if (tripSelected === trip) {
       setTripSelected(null);
       directionsRef.current.removeRoutes();
+      directionsRef.current.container.children[0].children[0].children[0].children[0].children[1].children[0].children[1].value = '';
+      directionsRef.current.container.children[0].children[0].children[0].children[2].children[1].children[0].children[1].value = '';
     }
     else {
       setTripSelected(trip);
@@ -382,7 +384,7 @@ export default function Home() {
                 <input
                   type="text"
                   name="origin"
-                  className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 px-4 py-2 w-full bg-gray-200 text-gray-500 rounded-lg focus:outline-none cursor-not-allowed"
                   placeholder="Enter origin"
                   value={tripForm.origin}
                   onChange={handleTripFormChange}
@@ -394,7 +396,7 @@ export default function Home() {
                 <input
                   type="text"
                   name="destination"
-                  className="mt-1 px-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 px-4 py-2 w-full bg-gray-200 text-gray-500 rounded-lg focus:outline-none cursor-not-allowed"
                   placeholder="Enter destination"
                   value={tripForm.destination}
                   onChange={handleTripFormChange}
