@@ -80,7 +80,7 @@ module.exports = function (jwtSecret) {
         }
         // Set session data
         req.session.username = username;
-  
+        console.log("Token from login is ", token);
         // Send response
         return res.status(200).json({ message: "Login successful", token: token});
       } else {
@@ -149,27 +149,7 @@ module.exports = function (jwtSecret) {
     }
   });
 
-  // Authentication Middleware
-  const authenticate = (req, res, next) => {
-    const authToken = req.cookies.authtoken;
 
-    if (!authToken) {
-      res.status(401).json({ showSignUpPanel: false, message: "Please log in to access this page" });
-      return;
-    }
-
-    try {
-      const decoded = jwt.verify(authToken, jwtSecret);
-      req.session.username = decoded.username;
-      req.session.firstName = decoded.firstName;
-      req.session.lastName = decoded.lastName;
-      req.session.email = decoded.email;
-      req.session.save();
-      next();
-    } catch (error) {
-      res.status(401).json({ showSignUpPanel: false, message: "Invalid token" });
-    }
-  };
 
   // Logout get call
   router.get("/logout", (req, res) => {
