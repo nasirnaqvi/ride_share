@@ -12,6 +12,9 @@ export default function Navbar(props) {
                 <Link to="/myrides" className="relative md:text-xl">
                     MyRides
                 </Link>
+                <Link to="/chat" className="ml-3 md:ml-5 mt-1 md:text-xl">
+                Chats 
+                </Link>
                 {props.numberOfRideRequests > 0 && (
                     <span className="absolute top-0 right-0 transform translate-x-2 -translate-y-2 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                         {props.numberOfRideRequests}

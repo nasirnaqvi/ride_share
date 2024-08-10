@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const db = require('./../controllers/db.js');
+const db = require('./../controllers/postgresDB.js');
 
 
 module.exports = function () {
@@ -89,7 +89,7 @@ module.exports = function () {
 
         const query = `SELECT 
                             trip_requests.trip_id,
-                            trips.destination,
+                            trips.destination_location,
                             trips.original_location,
                             trips.leaving_time,
                             trips.max_passengers,
@@ -147,7 +147,7 @@ module.exports = function () {
     });
 
     router.post('/addTrip', async (req, res) => {
-        const { destination, origin, leaving_time, max_passengers, trip_type } = req.body;
+        const { destination_location, origin, leaving_time, max_passengers, trip_type } = req.body;
         const username = req.session.username;
 
         let public = true;
@@ -158,10 +158,10 @@ module.exports = function () {
             public = false;
         }
 
-        const query = `INSERT INTO trips (driver_id, destination, original_location, active, payment_req, leaving_time, max_passengers, public) 
+        const query = `INSERT INTO trips (driver_id, destination_location, original_location, active, payment_req, leaving_time, max_passengers, public) 
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`;
 
-        await db.query(query, [username, destination, origin, true, true, leaving_time, max_passengers, public]);
+        await db.query(query, [username, destination_location, origin, true, true, leaving_time, max_passengers, public]);
         res.status(200).json("Trip added successfully");
     });
 
@@ -205,7 +205,7 @@ module.exports = function () {
     //             json_agg(
     //                 json_build_object(
     //                     'trip_id', pt.trip_id,
-    //                     'destination', pt.destination,
+    //                     'destination_location', pt.destination_location,
     //                     'original_location', pt.original_location,
     //                     'active', pt.active,
     //                     'payment_req', pt.payment_req,
@@ -259,7 +259,7 @@ module.exports = function () {
     //             json_agg(
     //                 json_build_object(
     //                     'trip_id', ft.trip_id,
-    //                     'destination', ft.destination,
+    //                     'destination_location', ft.destination_location,
     //                     'original_location', ft.original_location,
     //                     'active', ft.active,
     //                     'payment_req', ft.payment_req,
@@ -313,7 +313,7 @@ module.exports = function () {
     //             json_agg(
     //                 json_build_object(
     //                     'trip_id', pt.trip_id,
-    //                     'destination', pt.destination,
+    //                     'destination_location', pt.destination_location,
     //                     'original_location', pt.original_location,
     //                     'active', pt.active,
     //                     'payment_req', pt.payment_req,
@@ -353,17 +353,17 @@ module.exports = function () {
 
     // router.post('/createTrip', async (req, res) => {
     //     try {
-    //         const { driver_id, destination, original_location, active, payment_req, leaving_time } = req.body;
+    //         const { driver_id, destination_location, original_location, active, payment_req, leaving_time } = req.body;
 
     //         const insertQuery = `
-    //         INSERT INTO trips (driver_id, destination, original_location, active, payment_req, leaving_time)
+    //         INSERT INTO trips (driver_id, destination_location, original_location, active, payment_req, leaving_time)
     //         VALUES ($1, $2, $3, $4, $5)
     //         RETURNING *;
     //       `;
 
     //         const result = await pool.query(insertQuery, [
     //             driver_id,
-    //             destination,
+    //             destination_location,
     //             original_location,
     //             active,
     //             payment_req,

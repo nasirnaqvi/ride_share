@@ -6,8 +6,8 @@ const crypto = require('crypto');
 const axios  = require('axios');
 // const passport = require('passport');
 
-const db = require('./../controllers/db.js');
-
+const db = require('../controllers/postgresDB.js');
+const mongoDb = require('../controllers/mongoDB.js');
 axios.default.withCredentials = true;
 
 
@@ -37,9 +37,8 @@ Login code 200 => home page
 Else Login codes => Login page showSignUpPanel = false, message = "User does not exist" or "Invalid password" or "bad request"
 */
 
-const jwtSecret = crypto.randomBytes(32).toString('hex');
 
-module.exports = function (sessionSecret) {
+module.exports = function (jwtSecret) {
 
   // router.get('/auth/google', passport.authenticate('google', { scope: ['profile','email'] }))
 
@@ -51,46 +50,54 @@ module.exports = function (sessionSecret) {
   //     res.redirect('/log');
   //   });
 
+  router.get('/isLoggedIn', (req, res) => {
+    res.status(200).json({ isLoggedIn: !!req.session.username });
+  });
+
+
   // Login post call
   router.post("/login", async (req, res) => {
-    console.log(req.body);
     try {
-      const usernameQuery = `SELECT * FROM users WHERE users.username = $1`;
-      const data = await db.one(usernameQuery, [req.body.username]);
-      const password = data.password;
-      const match = await bcrypt.compare(req.body.password, password);
-  
+      // Retrieve user information from database
+      const { username, password, keepSignedIn } = req.body;
+      const usernameQuery = `SELECT * FROM users WHERE username = $1`;
+      const data = await db.one(usernameQuery, [username]);
+      // Check password
+      const match = await bcrypt.compare(password, data.password);
+
       if (match) {
         // Authentication successful
         const tokenPayload = {
-          username: req.body.username,
+          username: data.username,
           first_name: data.first_name,
           last_name: data.last_name,
           email: data.email,
-          keepSignedIn: req.body.keepSignedIn,
         };
-        if (req.body.keepSignedIn) {
-          const token = jwt.sign(tokenPayload, sessionSecret, { expiresIn: '1h' }); 
-          res.cookie('authtoken', token, { httpOnly: true, maxAge: 3600000 }); // Set maxAge in milliseconds
+        let token;
+        if (keepSignedIn) {
+          // Generate a token with a longer expiration if 'keepSignedIn' is true
+          token = jwt.sign(tokenPayload, jwtSecret, { expiresIn: '7d' }); // 7 days token expiration
+          res.cookie('authtoken', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days in milliseconds
         } else {
-          // If keepSignedIn is not checked, clear any existing token
-          res.clearCookie('authtoken');
+          // Generate a token with a shorter expiration if 'keepSignedIn' is false
+          token = jwt.sign(tokenPayload, jwtSecret, { expiresIn: '1h' });
+          res.cookie('authtoken', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour in milliseconds
         }
-        
         // Set session data
-        req.session.username = req.body.username;
-        console.log("Session username is ", req.session.username);
-        
-        return res.status(200).json({ message: "Login successful" });
+        req.session.username = username;
+        console.log("Token from login is ", token);
+        // Send response
+        return res.status(200).json({ message: "Login successful", token: token});
       } else {
         // Authentication failed
-        return res.status(401).json({ showSignUpPanel: false, message: "Invalid password" });
+        return res.status(401).json({ showSignUpPanel: false, message: "Invalid username or password" });
       }
     } catch (err) {
       console.error(err);
       return res.status(500).json({ showSignUpPanel: false, message: "An error occurred during login" });
     }
   });
+  
   
 
   // Register post call
@@ -147,35 +154,7 @@ module.exports = function (sessionSecret) {
     }
   });
 
-  router.get('/isLoggedIn', (req, res) => {
-    if (req.session.username) {
-      res.status(200).json({ isLoggedIn: true });
-    } else {
-      res.status(200).json({ isLoggedIn: false });
-    }
-  });
 
-  // Authentication Middleware
-  const authenticate = (req, res, next) => {
-    const authToken = req.cookies.authtoken;
-
-    if (!authToken) {
-      res.status(401).json({ showSignUpPanel: false, message: "Please log in to access this page" });
-      return;
-    }
-
-    try {
-      const decoded = jwt.verify(authToken, jwtSecret);
-      req.session.username = decoded.username;
-      req.session.firstName = decoded.firstName;
-      req.session.lastName = decoded.lastName;
-      req.session.email = decoded.email;
-      req.session.save();
-      next();
-    } catch (error) {
-      res.status(401).json({ showSignUpPanel: false, message: "Invalid token" });
-    }
-  };
 
   // Logout get call
   router.get("/logout", (req, res) => {
@@ -188,9 +167,6 @@ module.exports = function (sessionSecret) {
       res.status(500).json({ showSignUpPanel: false });
     }
   });
-
-  // Apply authentication middleware to specific routes
-  router.use(authenticate);
 
   return router;
 }

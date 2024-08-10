@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('./../controllers/db.js');
+const db = require('../controllers/postgresDB.js');
 const bcrypt = require('bcrypt');
 
 
@@ -17,6 +17,25 @@ module.exports = function () {
             profile_img: data.profile_img,
             trips_taken: data.trips_taken,
             password: "",
+          };
+          res.status(200).json(response);
+        }
+        catch (err) {
+          console.error(err);
+          res.status(500).json({ message: "An error occurred fetching user data" });
+        }
+      });
+
+      router.get('/limitedInfo', async (req, res) => {
+        try {
+          const profileQuery = `SELECT username, first_name, last_name, profile_img, trips_taken FROM users WHERE users.username = $1`;
+          const data = await db.one(profileQuery, [req.session.username]);
+          const response = {
+            username: data.username,
+            first_name: data.first_name,
+            last_name: data.last_name,
+            profile_img: data.profile_img,
+            trips_taken: data.trips_taken,
           };
           res.status(200).json(response);
         }

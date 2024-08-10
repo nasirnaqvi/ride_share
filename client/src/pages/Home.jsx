@@ -147,6 +147,7 @@ export default function Home() {
   // #endregion
 
   // #region handleTripClick
+
   const handleTripClick = (trip) => {
     if (tripSelected === trip) {
       setTripSelected(null);
@@ -157,7 +158,7 @@ export default function Home() {
     else {
       setTripSelected(trip);
       directionsRef.current.setOrigin(trip.original_location);
-      directionsRef.current.setDestination(trip.destination);
+      directionsRef.current.setDestination(trip.destination_location);
     }
   }
 
@@ -175,15 +176,15 @@ export default function Home() {
 
   const handleTripAddClick = () => {
     const origin = directionsRef.current.container.children[0].children[0].children[0].children[0].children[1].children[0].children[1].value;
-    const destination = directionsRef.current.container.children[0].children[0].children[0].children[2].children[1].children[0].children[1].value;
+    const destination_location = directionsRef.current.container.children[0].children[0].children[0].children[2].children[1].children[0].children[1].value;
 
-    if (origin === '' || destination === '') {
+    if (origin === '' || destination_location === '') {
       return;
     }
 
     setTripForm({
       origin: origin,
-      destination: destination,
+      destination_location: destination_location,
       leaving_time: new Date().toISOString().slice(0, 16),
       max_passengers: 1,
       trip_type: 'public'
@@ -211,6 +212,7 @@ export default function Home() {
   const handleTripFormChange = (e) => {
     const { name, value } = e.target;
     setTripForm({ ...tripForm, [name]: value });
+
   }
   // #endregion
 
@@ -224,7 +226,7 @@ export default function Home() {
         >
           <div>
             <h3 className="text-base sm:text-lg font-semibold mb-1">
-              {trip.original_location} <strong>to</strong> {trip.destination}
+              {trip.original_location} <strong>to</strong> {trip.destination_location}
             </h3>
             <p className="text-xs sm:text-sm text-gray-700 mb-1">
               Driver: {trip.first_name} {trip.last_name} • Trips taken: {trip.trips_taken}
@@ -288,7 +290,7 @@ export default function Home() {
         >
           <div>
             <h3 className="text-base sm:text-lg font-semibold mb-1">
-              {trip.original_location} <strong>to</strong> {trip.destination}
+              {trip.original_location} <strong>to</strong> {trip.destination_location}
             </h3>
             <p className="text-xs sm:text-sm text-gray-700 mb-1">
               Driver: {trip.first_name} {trip.last_name} • Trips taken: {trip.trips_taken}
@@ -398,7 +400,7 @@ export default function Home() {
                   name="destination"
                   className="mt-1 px-4 py-2 w-full bg-gray-200 text-gray-500 rounded-lg focus:outline-none cursor-not-allowed"
                   placeholder="Enter destination"
-                  value={tripForm.destination}
+                  value={tripForm.destination_location}
                   onChange={handleTripFormChange}
                   disabled
                 />

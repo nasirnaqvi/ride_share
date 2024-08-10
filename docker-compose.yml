@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   server:
     container_name: ${SERVER_HOST}
@@ -62,9 +61,18 @@ services:
     #   - PGHOST=${POSTGRES_HOST}
     #   - PGUSER=${POSTGRES_USER}
     #   - PGDATABASE=${POSTGRES_DATABASE}
-
+  mongo:
+    container_name: ${MONGO_HOST}
+    env_file: .env
+    image: mongo:latest
+    ports:
+      - ${MONGO_PORT}:${MONGO_PORT}
+    volumes:
+      - mongodata:/data/db
 volumes:
   ride_share:
+  mongodata:
+    name: "mongodata"
 
 # ngrok:
 #   container_name: ${NGROK_HOST}

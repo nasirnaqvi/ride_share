@@ -1,87 +1,102 @@
-//#region imports
-const express = require('express'); 
-const pgp = require('pg-promise')(); 
-const bodyParser = require('body-parser');
-const session = require('express-session'); 
-const bcrypt = require('bcrypt');
-const path = require('path');
-const jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser');
-const socketIO = require('socket.io');
+//#region Imports
+const express = require('express');
 const http = require('http');
+const path = require('path');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const crypto = require('crypto');
-const pg = require('pg');
-//#endregion 
+const expressSession = require('express-session');
+const { Server } = require('socket.io');
 
-//Importing routes
+// Database and utility imports
+const pgp = require('pg-promise')();
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const pg = require('pg');
+
+// Route imports
 const authRoutes = require('./routes/authRoutes.js');
 const tripRoutes = require('./routes/tripRoutes.js');
 const profileRoutes = require('./routes/profileRoutes.js');
-const db = require('./controllers/db.js');
+const chatRoutes = require('./routes/chatRoutes.js');
+const db = require('./controllers/postgresDB.js');
+//#endregion
 
-
+// Initialize Express app and server
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
-
-
-const SERVER_HOST = process.env.SERVER_HOST;
-const SERVER_PORT = process.env.SERVER_PORT;
-
-app.use(cors({ origin: `http://localhost:${process.env.CLIENT_PORT}`, credentials: true }));
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Origin', `http://localhost:${process.env.CLIENT_PORT}`);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
+const io = new Server(server, {
+  cors: {
+    origin: `http://localhost:${process.env.CLIENT_PORT}`,
+    methods: ['GET', 'POST'],
+  },
 });
 
 
+// Environment variables
+const SERVER_PORT = process.env.SERVER_PORT;
+const sessionSecret = crypto.randomBytes(32).toString('hex');
+const jwtSecret = crypto.randomBytes(32).toString('hex');
 
-app.use(bodyParser.json({limit: '10mb'}));
-app.use(bodyParser.urlencoded({limit: '10mb', extended: true }));
+// Middleware setup
+app.use(cors({
+  origin: `http://localhost:${process.env.CLIENT_PORT}`,
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
+
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'website')));
 
-app.use(express.static('website'));
-app.use(express.json());
+// Session setup
+const session = expressSession({
+  secret: sessionSecret,
+  resave: true,
+  saveUninitialized: true,
+});
+app.use(session);
 
-const sessionSecret = crypto.randomBytes(32).toString('hex');
-
-app.use(
-  session({
-    secret: sessionSecret,
-    saveUninitialized: false,
-    resave: false,
-  })
-);
-
-app.use((req, res, next) => { //Runs everytime a request occurs
-  // Example: Log request method and URL
+// Request logging middleware
+app.use((req, res, next) => {
   console.log("\n-------------------");
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  const authToken = req.cookies.authtoken;
-  // if (authToken) {
-
-  // }
-  // console.log(authToken);
-  // console.log("-------------------\n");
-  // Proceed to the next middleware/route handler
+  if (req.cookies.authtoken) console.log(req.session.username);
+  console.log("-------------------\n");
   next();
 });
 
+// Authentication Middleware
+const authenticate = (req, res, next) => {
+  const authToken = req.cookies.authtoken;
+  if (!authToken) {
+    res.status(401).json({ showSignUpPanel: false, message: "Please log in to access this page" });
+    return;
+  }
 
+  try {
+    const decoded = jwt.verify(authToken, jwtSecret);
+    req.session.username = decoded.username;
+    req.session.firstName = decoded.firstName;
+    req.session.lastName = decoded.lastName;
+    req.session.email = decoded.email;
+    req.session.save();
+    next();
+  } catch (error) {
+    console.log(error)
+    res.status(401).json({ showSignUpPanel: false, message: "Invalid token" });
+  }
+};
 
-app.use('/auth', authRoutes(sessionSecret));
+// Route handling
+app.use('/auth', authRoutes(jwtSecret));
+app.use(authenticate);
 app.use('/trip', tripRoutes());
 app.use('/profile', profileRoutes());
+app.use('/chats', chatRoutes(jwtSecret, io));
 
-
-app.get('/currSession', (req, res) => {
-  res.status(200).json({ username: req.session.username });
-});
 
 app.get('/getNumberOfRideRequests', async (req, res) => {
   const username = req.session.username;

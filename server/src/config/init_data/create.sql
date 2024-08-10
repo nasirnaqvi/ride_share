@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS friendships (
 CREATE TABLE IF NOT EXISTS trips (
   trip_id SERIAL PRIMARY KEY,
   driver_id VARCHAR(50) REFERENCES users(username), 
-  destination VARCHAR(255),
+  destination_location VARCHAR(255),
   original_location VARCHAR(255),
   active BOOLEAN DEFAULT TRUE,
   payment_req BOOLEAN,
