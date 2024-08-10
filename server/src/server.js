@@ -20,6 +20,7 @@ const authRoutes = require('./routes/authRoutes.js');
 const tripRoutes = require('./routes/tripRoutes.js');
 const profileRoutes = require('./routes/profileRoutes.js');
 const chatRoutes = require('./routes/chatRoutes.js');
+const db = require('./controllers/postgresDB.js');
 //#endregion
 
 // Initialize Express app and server
@@ -34,7 +35,7 @@ const io = new Server(server, {
 
 
 // Environment variables
-const SERVER_PORT = process.env.SERVER_PORT || 3000;
+const SERVER_PORT = process.env.SERVER_PORT;
 const sessionSecret = crypto.randomBytes(32).toString('hex');
 const jwtSecret = crypto.randomBytes(32).toString('hex');
 
@@ -44,6 +45,7 @@ app.use(cors({
   methods: ['GET', 'POST'],
   credentials: true
 }));
+
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
@@ -63,13 +65,6 @@ app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   if (req.cookies.authtoken) console.log(req.session.username);
   console.log("-------------------\n");
-  const authToken = req.cookies.authtoken;
-  // if (authToken) {
-
-  // }
-  // console.log(authToken);
-  // console.log("-------------------\n");
-  // Proceed to the next middleware/route handler
   next();
 });
 
@@ -101,15 +96,6 @@ app.use(authenticate);
 app.use('/trip', tripRoutes());
 app.use('/profile', profileRoutes());
 app.use('/chats', chatRoutes(jwtSecret, io));
-
-// Routes for session status
-app.get('/isLoggedIn', (req, res) => {
-  res.status(200).json({ isLoggedIn: !!req.session.username });
-});
-
-app.get('/currSession', (req, res) => {
-  res.status(200).json({ username: req.session.username });
-});
 
 
 app.get('/getNumberOfRideRequests', async (req, res) => {

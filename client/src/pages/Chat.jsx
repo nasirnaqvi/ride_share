@@ -40,6 +40,7 @@ const Chat = () => {
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [addChatWindowVisible, setAddChatWindowVisible] = useState(false);
   const [friendSearch, setFriendSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
 
 

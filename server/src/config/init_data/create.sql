@@ -41,7 +41,6 @@ CREATE TABLE IF NOT EXISTS trip_requests (
   request_status VARCHAR(20) NOT NULL -- "pending", "accepted", "rejected"
 );
 
-
 -- Create the passengers table
 -- CREATE TABLE IF NOT EXISTS passengers (
 --   trip_id integer,

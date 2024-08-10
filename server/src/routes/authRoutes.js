@@ -50,6 +50,11 @@ module.exports = function (jwtSecret) {
   //     res.redirect('/log');
   //   });
 
+  router.get('/isLoggedIn', (req, res) => {
+    res.status(200).json({ isLoggedIn: !!req.session.username });
+  });
+
+
   // Login post call
   router.post("/login", async (req, res) => {
     try {
