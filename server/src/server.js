@@ -65,6 +65,13 @@ app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   if (req.cookies.authtoken) console.log(req.session.username);
   console.log("-------------------\n");
+  const authToken = req.cookies.authtoken;
+  // if (authToken) {
+
+  // }
+  // console.log(authToken);
+  // console.log("-------------------\n");
+  // Proceed to the next middleware/route handler
   next();
 });
 
@@ -83,7 +90,24 @@ app.get('/currSession', (req, res) => {
   res.status(200).json({ username: req.session.username });
 });
 
-// Start server
+
+app.get('/getNumberOfRideRequests', async (req, res) => {
+  const username = req.session.username;
+  const query = `SELECT COUNT(*) 
+                 FROM trip_requests 
+                 JOIN trips ON trip_requests.trip_id = trips.trip_id
+                 WHERE trips.driver_id = $1 AND trip_requests.request_status = 'pending'`;
+  const response = await db.one(query, [username]);
+  res.status(200).json(response);
+});
+
+app.get('/getNumberOfFriendRequests', async (req, res) => {
+  const username = req.session.username;
+  const query = `SELECT COUNT(*) FROM friendships WHERE user2_id = $1 AND status = 'pending'`;
+  const response = await db.one(query, [username]);
+  res.status(200).json(response);
+});
+
 server.listen(SERVER_PORT, () => {
   console.log(`Server is running on port ${SERVER_PORT}`);
 });

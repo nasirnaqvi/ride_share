@@ -57,10 +57,9 @@ module.exports = function (jwtSecret) {
       const { username, password, keepSignedIn } = req.body;
       const usernameQuery = `SELECT * FROM users WHERE username = $1`;
       const data = await db.one(usernameQuery, [username]);
-  
       // Check password
       const match = await bcrypt.compare(password, data.password);
-  
+
       if (match) {
         // Authentication successful
         const tokenPayload = {
@@ -69,7 +68,6 @@ module.exports = function (jwtSecret) {
           last_name: data.last_name,
           email: data.email,
         };
-  
         let token;
         if (keepSignedIn) {
           // Generate a token with a longer expiration if 'keepSignedIn' is true
@@ -83,7 +81,6 @@ module.exports = function (jwtSecret) {
   
         // Set session data
         req.session.username = username;
-  
         // Send response
         return res.status(200).json({ message: "Login successful", token: token});
       } else {
@@ -149,6 +146,14 @@ module.exports = function (jwtSecret) {
       res.json({ keepSignedIn: decoded.keepSignedIn });
     } catch (error) {
       res.json({ keepSignedIn: false });
+    }
+  });
+
+  router.get('/isLoggedIn', (req, res) => {
+    if (req.session.username) {
+      res.status(200).json({ isLoggedIn: true });
+    } else {
+      res.status(200).json({ isLoggedIn: false });
     }
   });
 

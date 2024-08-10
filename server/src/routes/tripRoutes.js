@@ -33,10 +33,8 @@ module.exports = function () {
                 json_agg(
                     json_build_object(
                         'trip_id', pt.trip_id,
-                        'destination_location', pt.destination_location,
+                        'destination', pt.destination,
                         'original_location', pt.original_location,
-                        'destination_latlong', pt.destination_latlong,
-                        'original_latlong', pt.original_latlong,
                         'active', pt.active,
                         'payment_req', pt.payment_req,
                         'leaving_time', pt.leaving_time,
@@ -89,10 +87,8 @@ module.exports = function () {
                 json_agg(
                     json_build_object(
                         'trip_id', ft.trip_id,
-                        'destination_location', ft.destination_location,
+                        'destination', ft.destination,
                         'original_location', ft.original_location,
-                        'destination_latlong', ft.destination_latlong,
-                        'original_latlong', ft.original_latlong,
                         'active', ft.active,
                         'payment_req', ft.payment_req,
                         'leaving_time', ft.leaving_time,
@@ -145,10 +141,8 @@ module.exports = function () {
                 json_agg(
                     json_build_object(
                         'trip_id', pt.trip_id,
-                        'destination_location', pt.destination_location,
+                        'destination', pt.destination,
                         'original_location', pt.original_location,
-                        'destination_latlong', pt.destination_latlong,
-                        'original_latlong', pt.original_latlong,
                         'active', pt.active,
                         'payment_req', pt.payment_req,
                         'leaving_time', pt.leaving_time,
@@ -176,6 +170,7 @@ module.exports = function () {
             response.public_trips = pTrips[0].public_trips_result;
 
             // Send the response
+            console.log(response);
             res.status(200).json(response);
             return;
         } catch (error) {
@@ -186,11 +181,11 @@ module.exports = function () {
 
     router.post('/createTrip', async (req, res) => {
         try {
-            const { driver_id, destination_location, original_location, active, payment_req, leaving_time } = req.body;
+            const { driver_id, destination, original_location, active, payment_req, leaving_time } = req.body;
 
             const insertQuery = `
-            INSERT INTO trips (driver_id, destination_location, original_location, destination_latlong, original_latlong, active, payment_req, leaving_time)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO trips (driver_id, destination, original_location, active, payment_req, leaving_time)
+            VALUES ($1, $2, $3, $4, $5)
             RETURNING *;
           `;
 
@@ -285,23 +280,29 @@ module.exports = function () {
         }
     });
 
-    // Leave a trip (remove user from otherUsers)
-    //   router.post('/leaveTrip', async (req, res) => {
+    // // End a trip (set active to false)
+    // router.post('/endTrip', async (req, res) => {
     //     try {
-    //       const { tripId, userId } = req.body;
-    //       const trip = await Trip.findByIdAndUpdate(
-    //         tripId,
-    //         { $pull: { otherUsers: userId } },
-    //         { new: true }
-    //       );
-    //       if (!trip) {
-    //         return res.status(404).json({ error: 'Trip not found' });
-    //       }
-    //       res.status(200).json(trip);
+    //         const { tripId } = req.body;
+    //         const updateQuery = `
+    //         UPDATE trips
+    //         SET active = false
+    //         WHERE trip_id = $1
+    //         RETURNING *;
+    //       `;
+
+    //         const result = await db.query(updateQuery, [tripId]);
+
+    //         if (result.length === 0) {
+    //             return res.status(404).json({ error: 'Trip not found' });
+    //         }
+
+    //         res.status(200).json(result[0]);
     //     } catch (error) {
-    //       res.status(400).json({ error: error.message });
+    //         console.error('Error updating trip status', error);
+    //         res.status(400).json({ error: error.message });
     //     }
-    //   });
+    // });
 
     // Get trip details by ID
     router.get('/getTripByID', async (req, res) => {
@@ -312,6 +313,7 @@ module.exports = function () {
             WHERE trips.trip_id = $1;
           `;
             const result = await db.query(tripQuery, [req.body.tripId]);
+            console.log(result);
 
             if (result.length === 0) {
                 return res.status(404).json({ error: 'Trip not found' });
@@ -327,16 +329,38 @@ module.exports = function () {
     // Get users of a trip
     //   router.get('/getTripUsers', async (req, res) => {
     //     try {
-    //       const { tripId } = req.query;
-    //       const trip = await Trip.findById(tripId).populate('otherUsers');
-    //       if (!trip) {
-    //         return res.status(404).json({ error: 'Trip not found' });
-    //       }
-    //       res.status(200).json(trip.otherUsers);
+    //         const tripQuery = `
+    //         SELECT *
+    //         FROM trips
+    //         WHERE trips.trip_id = $1;
+    //       `;
+    //         const result = await db.query(tripQuery, [req.body.tripId]);
+    //         console.log(result);
+
+    //         if (result.length === 0) {
+    //             return res.status(404).json({ error: 'Trip not found' });
+    //         }
+
+    //         res.status(200).json(result);
     //     } catch (error) {
-    //       res.status(400).json({ error: error.message });
+    //         console.error('Error querying database', error);
+    //         res.status(500).json({ error: 'Internal server error' });
     //     }
-    //   });
+    // });
+
+    // // Get users of a trip
+    // //   router.get('/getTripUsers', async (req, res) => {
+    // //     try {
+    // //       const { tripId } = req.query;
+    // //       const trip = await Trip.findById(tripId).populate('otherUsers');
+    // //       if (!trip) {
+    // //         return res.status(404).json({ error: 'Trip not found' });
+    // //       }
+    // //       res.status(200).json(trip.otherUsers);
+    // //     } catch (error) {
+    // //       res.status(400).json({ error: error.message });
+    // //     }
+    // //   });
 
     return router;
 }
