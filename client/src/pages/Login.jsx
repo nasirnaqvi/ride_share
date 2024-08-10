@@ -11,7 +11,7 @@ export default function Login(props) {
         lastName: '',
         email: '',
         password: ''
-    
+
     })
     const [onLogin, setOnLogin] = useState(true)
     const [failedLogin, setFailedLogin] = useState(false)
@@ -20,45 +20,43 @@ export default function Login(props) {
     const navigate = useNavigate()
 
     function changeForm(event) {
-        const {name, value} = event.target
-        setUser({...user, [name]: value})
+        const { name, value } = event.target
+        setUser({ ...user, [name]: value })
     }
 
     function handleLogin(event) {
-        event.preventDefault();  
+        event.preventDefault();
 
         axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
             username: user.username,
             password: user.password,
             keepSignedIn: keepSignedIn
         },
-        {withCredentials: true})
-        .then(response => {
-            console.log('Login successful')
-            console.log("Response data", response.data);
-            const { token } = response.data; 
-            console.log(token);
-            if (token) {
-                localStorage.setItem('jwtToken', token);
-            }
-            props.setSignedIn();
-            navigate('/home');
-        })
-        .catch(() => {
-            setFailedLogin(true)
-        })
+            { withCredentials: true })
+            .then(response => {
+                const { token } = response.data;
+                if (token) {
+                    sessionStorage.clear();
+                    sessionStorage.setItem('token', token);
+                }
+                props.setSignedIn();
+                navigate('/home');
+            })
+            .catch(() => {
+                setFailedLogin(true)
+            })
     }
 
     function handleSignup(event) {
         event.preventDefault()
 
         axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/register`, user)
-        .then(() => {
-            navigate('/login')
-        })
-        .catch(() => {
-            alert('Failed to register user')
-        })
+            .then(() => {
+                navigate('/login')
+            })
+            .catch(() => {
+                alert('Failed to register user')
+            })
         setOnLogin(true)
     }
 
@@ -79,13 +77,13 @@ export default function Login(props) {
                 <h1 className="text-5xl xl:text-6xl font-bold text-blue-600 mr-auto">ride share</h1>
                 <h2 className="text-md xl:text-lg mr-auto roll-in-left">For all your travel needs</h2>
             </div>
-            <div 
+            <div
                 className="flex flex-col justify-center form-background rounded-lg shadow-lg h-screen-70 lg:w-3/5 xl:w-2/5 2xl:w-1/3"
             >
                 <div className="flex ml-4 mt-3 text-xl">
                     <button
-                        onClick={() => setOnLogin(true)}  
-                        className={onLogin ? "login-signin" : "login-signin-dark"}  
+                        onClick={() => setOnLogin(true)}
+                        className={onLogin ? "login-signin" : "login-signin-dark"}
                     >
                         Log In
                     </button>
@@ -96,33 +94,33 @@ export default function Login(props) {
                         Sign Up
                     </button>
                 </div>
-                {onLogin ? 
-                    <form 
+                {onLogin ?
+                    <form
                         onSubmit={handleLogin}
                         className="flex flex-col p-4 w-full overflow-auto"
-                    >  
+                    >
                         <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
                         <input
-                            className="input-field" 
-                            type="text" 
-                            id="username" 
+                            className="input-field"
+                            type="text"
+                            id="username"
                             name="username"
-                            value={user.username} 
-                            onChange={changeForm} 
+                            value={user.username}
+                            onChange={changeForm}
                         />
                         <label htmlFor="password" className="text-white font-bold text-xs">PASSWORD</label>
-                        <input 
+                        <input
                             className="input-field"
-                            type="password" 
+                            type="password"
                             id="password"
-                            name="password" 
-                            value={user.password} 
+                            name="password"
+                            value={user.password}
                             onChange={changeForm}
                         />
                         <section className="flex justify-center">
                             {failedLogin && <p className="text-gray-900 p-2 font-bold bg-red-500 bg-opacity-50 rounded-md mb-4">Username or password is incorrect.</p>}
                         </section>
-                        <button 
+                        <button
                             type="submit"
                             className="form-submit"
                         >
@@ -130,56 +128,56 @@ export default function Login(props) {
                         </button>
                     </form>
                     :
-                    <form 
+                    <form
                         onSubmit={handleSignup}
                         className="flex flex-col p-4 w-full overflow-auto"
-                    >  
+                    >
                         <label htmlFor="username" className="text-white font-bold text-xs">USERNAME</label>
                         <input
-                            className="input-field" 
-                            type="text" 
-                            id="username" 
+                            className="input-field"
+                            type="text"
+                            id="username"
                             name="username"
-                            value={user.username} 
-                            onChange={changeForm} 
+                            value={user.username}
+                            onChange={changeForm}
                         />
                         <label htmlFor="first-name" className="text-white font-bold text-xs">FIRST NAME</label>
-                        <input 
+                        <input
                             className="input-field"
-                            type="text" 
+                            type="text"
                             id="first-name"
-                            name="firstName" 
-                            value={user.firstName} 
-                            onChange={changeForm} 
+                            name="firstName"
+                            value={user.firstName}
+                            onChange={changeForm}
                         />
                         <label htmlFor="last-name" className="text-white font-bold text-xs">LAST NAME</label>
-                        <input 
+                        <input
                             className="input-field"
-                            type="text" 
+                            type="text"
                             id="last-name"
-                            name="lastName" 
-                            value={user.lastName} 
+                            name="lastName"
+                            value={user.lastName}
                             onChange={changeForm}
                         />
                         <label htmlFor="email" className="text-white font-bold text-xs">EMAIL</label>
-                        <input 
+                        <input
                             className="input-field"
-                            type="email" 
+                            type="email"
                             id="email"
-                            name="email" 
-                            value={user.email} 
-                            onChange={changeForm} 
+                            name="email"
+                            value={user.email}
+                            onChange={changeForm}
                         />
                         <label htmlFor="password" className="text-white font-bold text-xs">PASSWORD</label>
-                        <input 
+                        <input
                             className="input-field"
-                            type="password" 
+                            type="password"
                             id="password"
-                            name="password" 
-                            value={user.password} 
-                            onChange={changeForm} 
+                            name="password"
+                            value={user.password}
+                            onChange={changeForm}
                         />
-                        <button 
+                        <button
                             type="submit"
                             className="form-submit"
                         >

@@ -78,9 +78,9 @@ module.exports = function (jwtSecret) {
           token = jwt.sign(tokenPayload, jwtSecret, { expiresIn: '1h' });
           res.cookie('authtoken', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour in milliseconds
         }
-  
         // Set session data
         req.session.username = username;
+  
         // Send response
         return res.status(200).json({ message: "Login successful", token: token});
       } else {
@@ -149,14 +149,6 @@ module.exports = function (jwtSecret) {
     }
   });
 
-  router.get('/isLoggedIn', (req, res) => {
-    if (req.session.username) {
-      res.status(200).json({ isLoggedIn: true });
-    } else {
-      res.status(200).json({ isLoggedIn: false });
-    }
-  });
-
   // Authentication Middleware
   const authenticate = (req, res, next) => {
     const authToken = req.cookies.authtoken;
@@ -190,9 +182,6 @@ module.exports = function (jwtSecret) {
       res.status(500).json({ showSignUpPanel: false });
     }
   });
-
-  // Apply authentication middleware to specific routes
-  router.use(authenticate);
 
   return router;
 }

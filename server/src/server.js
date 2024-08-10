@@ -57,8 +57,6 @@ const session = expressSession({
 });
 app.use(session);
 
-// io.engine.use(session);
-
 // Request logging middleware
 app.use((req, res, next) => {
   console.log("\n-------------------");
@@ -75,8 +73,31 @@ app.use((req, res, next) => {
   next();
 });
 
+// Authentication Middleware
+const authenticate = (req, res, next) => {
+  const authToken = req.cookies.authtoken;
+  if (!authToken) {
+    res.status(401).json({ showSignUpPanel: false, message: "Please log in to access this page" });
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(authToken, jwtSecret);
+    req.session.username = decoded.username;
+    req.session.firstName = decoded.firstName;
+    req.session.lastName = decoded.lastName;
+    req.session.email = decoded.email;
+    req.session.save();
+    next();
+  } catch (error) {
+    console.log(error)
+    res.status(401).json({ showSignUpPanel: false, message: "Invalid token" });
+  }
+};
+
 // Route handling
 app.use('/auth', authRoutes(jwtSecret));
+app.use(authenticate);
 app.use('/trip', tripRoutes());
 app.use('/profile', profileRoutes());
 app.use('/chats', chatRoutes(jwtSecret, io));
