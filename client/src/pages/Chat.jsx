@@ -9,7 +9,7 @@ import background from './../resources/imgs/map-bg.png';
 import EmojiPicker from 'emoji-picker-react';
 import { add, formatDistanceToNow } from 'date-fns';
 
-const Chat = () => {
+export default function Chat() {
   // State variables
   const [user, setUser] = useState({
     username: '',
@@ -22,6 +22,10 @@ const Chat = () => {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState('');
 
+  const [friends, setFriends] = useState([]);
+  const [friendChatSearch, setFriendChatSearch] = useState(null);
+  const [searchFriendChat, setSearchFriendChat] = useState('');
+  const [currentFriendsSelected, setCurrentFriendsSelected] = useState([]);
 
   //Used for panel when clicking on chat
   const [messages, setMessages] = useState([]);
@@ -119,6 +123,9 @@ const Chat = () => {
 
         return prevMessages; // No change if message already exists
       });
+      setSocket(socket);
+
+
       setChats((prevChats) => {
         const chatIndex = prevChats.findIndex((chat) => chat.chatName === data.chatName);
         const updatedChat = {
@@ -136,7 +143,6 @@ const Chat = () => {
     });
 
 
-    setSocket(socket);
 
     //#endregion
 
@@ -146,6 +152,12 @@ const Chat = () => {
       })
       .catch(error => console.log(error));
 
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/profile/getMyFriends`, { withCredentials: true })
+      .then(response => {
+        setFriends(response.data);
+        console.log("Friends are ", response.data);
+      })
+      .catch(error => console.log(error));
 
     axios.get(`${import.meta.env.VITE_BACKEND_URL}/chats/getChats`, { withCredentials: true })
       .then(response => {
@@ -173,6 +185,34 @@ const Chat = () => {
     socket.emit('message', newMessage);
     setMessage(''); // Clear input after sending
   };
+
+  const handleCreateChat = () => {
+    if (currentFriendsSelected.length === 0) return;
+
+    console.log("Creating chat with ", currentFriendsSelected);
+
+    const newChat = {
+      members: [user.username, ...currentFriendsSelected],
+      chatName: currentFriendsSelected.concat(user.username).join(', '),
+      messages: []
+    };
+
+    axios.post(`${import.meta.env.VITE_BACKEND_URL}/chats/createChat`, newChat, { withCredentials: true })
+      .then(response => {
+        console.log("Chat created successfully:", response.data);
+        console.log("Chat list is ", chatList)
+        // Add the new chat to the chats state
+        // setChatList((prevChats) => [...prevChats, response.data]);
+
+        // Clear selected friends and hide the add chat window
+        setCurrentFriendsSelected([]);
+        setAddChatWindowVisible(false);
+      })
+      .catch(error => {
+        console.error('Error creating chat:', error.response?.data || error.message);
+      });
+  };
+
 
   // Handle click outside of emoji picker
   useEffect(() => {
@@ -227,53 +267,50 @@ const Chat = () => {
       .filter((chat) =>
         chat.chatName.toLowerCase().includes(friendSearch.toLowerCase())
         || chat.users.some((user) => user.toLowerCase().includes(friendSearch.toLowerCase()))
-
       );
 
     return (
-      filteredChats.map((chat, index) => (
-        <div key={index} className="">
-          <div className="chat-bg rounded-md p-4 mb-2 hover:bg-black hover:bg-opacity-20 transition-all duration-300">
-            <button
-              className="text-color p-2 w-full text-left"
-              onClick={() => {
-                setMessages(chat.messages);
-                setCurrentUser(chat);
-              }}
-            >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center flex-grow truncate">
-                  <img
-                    src={chat.image ? chat.image : "/images/default_profile_pic.jpg"}
-                    alt="Profile picture"
-                    className="profile-format"
-                  />
-                  <div className="flex flex-col truncate max-w-full flex-grow">
-                    <h3 className={`text-base sm:text-md font-semibold mb-1 ${!chat.isSeen ? 'font-bold' : ''}`}>
-                      {chat.groupname}
-                    </h3>
-                    <h3 className={`truncate ${!chat.isSeen ? 'font-bold' : ''}`}>
-                      {chat.chatName}
-                    </h3>
-                    <h3 className={`truncate text-sm ${!chat.isSeen ? 'font-bold' : ''}`}>
-                      {chat.lastMessage.senderId}: {chat.lastMessage.text}
+        filteredChats.map((chat, index) => (
+          <div key={index} className="">
+            <div className="chat-bg rounded-md p-2 mb-2 hover:bg-black hover:bg-opacity-20 transition-all duration-300">
+              <button
+                className="text-color py-2 px-1 w-full text-left"
+                onClick={() => {
+                  setMessages(chat.messages);
+                  setCurrentUser(chat);
+                }}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center flex-grow truncate">
+                    <img
+                      src={chat.image ? chat.image : "/images/default_profile_pic.jpg"}
+                      alt="Profile picture"
+                      className="profile-format"
+                    />
+                    <div className="flex flex-col truncate max-w-full flex-grow">
+                      <h3 className={`text-base sm:text-md font-semibold mb-1 ${!chat.isSeen ? 'font-bold' : ''}`}>
+                        {chat.groupname}
+                      </h3>
+                      <h3 className={`truncate ${!chat.isSeen ? 'font-bold' : ''}`}>
+                        {chat.chatName}
+                      </h3>
+                      <h3 className={`truncate text-sm ${!chat.isSeen ? 'font-bold' : ''}`}>
+                        {chat.lastMessage.senderId}: {chat.lastMessage.text}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0 ml-4">
+                    <h3 className="text-right whitespace-nowrap">
+                      {getTimeDifference(chat.createdAt)}
                     </h3>
                   </div>
                 </div>
-                <div className="flex-shrink-0 ml-4">
-                  <h3 className="text-right whitespace-nowrap">
-                    {getTimeDifference(chat.createdAt)}
-                  </h3>
-                </div>
-              </div>
-
-
-
-            </button>
+              </button>
+            </div>
           </div>
-        </div>
-      ))
+        ))
     );
+
   }
 
 
@@ -304,7 +341,7 @@ const Chat = () => {
       >
         <div className={`flex flex-col ${isMsgTypeMessage ? 'items-center' : isCurrentUser ? 'items-end' : 'items-start'} max-w-[70%]`}>
           <div
-            className={`p-2 rounded-lg ${isMsgTypeMessage ? 'bg-gray-500 bg-opacity-50 text-white' : isCurrentUser ? 'bg-blue-900 bg-opacity-60 text-white' : 'bg-gray-800 bg-opacity-60 text-white'}`}
+            className={`rounded-lg ${isMsgTypeMessage ? 'bg-opacity-50 text-gray-500 text-sm' : isCurrentUser ? 'p-2 bg-blue-900 bg-opacity-60 text-white' : 'bg-gray-800 bg-opacity-60 text-white'}`}
           >
             <p className="whitespace-normal p-1">{msg.text}</p>
           </div>
@@ -321,24 +358,94 @@ const Chat = () => {
     );
   });
 
-  const addChatWindow = addChatWindowVisible && (
-    <div className="p-2 rounded-md chat-bg">
-      {/* Search Bar */}
-      <input
-        type="text"
-        placeholder="Search for a user..."
-        className="bg-transparent border-none outline-none w-full text-color ml-2"
-      />
+  useEffect(() => {
+    if (addChatWindowVisible) {
+      setFriendChatSearch(generateFriendChatList());
+    }
+    else {
+      setFriendChatSearch(null);
+    }
+  }, [friends, searchFriendChat, addChatWindowVisible, currentFriendsSelected]);
 
-      {/* Other content can go here */}
-      {/* ... */}
+  function generateFriendChatList() {
 
-    </div>
-  );
+    const filteredFriends = friends.filter((friend) =>
+      (friend.username.toLowerCase().includes(searchFriendChat.toLowerCase()) ||
+        (friend.first_name + " " + friend.last_name).toLowerCase().includes(searchFriendChat.toLowerCase())) &&
+      !currentFriendsSelected.includes(friend.username)
+    );
 
 
+    return (
+      <div className="relative text-color h-full flex flex-col">
+        {/* Selected Friends Tags */}
+        <div className="flex flex-wrap mb-2">
+          {currentFriendsSelected.map((username) => (
+            <div key={username} className="flex items-center chat-bg rounded-full p-1 px-2">
+              <span className="text-sm">{username}</span>
+              <button
+                className="ml-2"
+                onClick={() => {
+                  setCurrentFriendsSelected(prev => prev.filter(item => item !== username));
+                }}
+              >
+                &times;
+              </button>
+            </div>
+          ))}
+        </div>
 
+        {/* Search Bar */}
+        <div className="flex items-center chat-bg rounded-md p-2 mb-2">
+          <h3 className="text-color mr-2">To:</h3>
+          <input
+            type="text"
+            placeholder="Search for a user..."
+            className="bg-transparent border-none outline-none w-full text-color mr-2"
+            value={searchFriendChat}
+            onChange={(e) => setSearchFriendChat(e.target.value)}
+          />
+        </div>
 
+        {/* Friends List */}
+        <div className="flex flex-col flex-grow p-2 overflow-auto">
+          {filteredFriends.map((friend, index) => (
+            <button
+              key={index}
+              className="text-left w-full"
+              onClick={() => {
+                setCurrentFriendsSelected(prev => {
+                  const newSelection = prev.includes(friend.username)
+                    ? prev.filter(username => username !== friend.username)
+                    : [...prev, friend.username];
+                  return newSelection;
+                });
+              }}
+            >
+              <div className="flex items-center chat-bg rounded-md p-4 mb-2 hover:bg-black hover:bg-opacity-20 transition-all duration-300">
+                <img
+                  src={friend.image ? friend.image : "/images/default_profile_pic.jpg"}
+                  alt="Profile picture"
+                  className="profile-format"
+                />
+                <div className="ml-3 text-white font-sans flex-1">
+                  <h1 className="text-lg font-bold">{friend.first_name} {friend.last_name}</h1>
+                  <h2 className="text-sm">{friend.username}</h2>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <button
+          className="w-full chat-bg rounded-md p-2 mb-2 hover:bg-black hover:bg-opacity-20 transition-all duration-300 absolute bottom-0"
+          onClick={() => { handleCreateChat(); }}
+        >
+          Create chat
+        </button>
+      </div>
+    );
+  }
 
   // Chat view details
   const detailChatView = currentUser && (
@@ -349,20 +456,19 @@ const Chat = () => {
           alt="Profile picture"
           className="profile-pic w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full object-cover mr-2"
         />
-        <div className="flex-col"
-          style={{ width: chatNameWidth }}>
-          <input className="text-base sm:text-lg font-semibold bg-transparent hover:bg-opacity-20 transition-all duration-300"
+        <div className="flex-col" style={{ width: chatNameWidth }}>
+          <input
+            className="text-base sm:text-lg font-semibold bg-transparent hover:bg-opacity-20 transition-all duration-300"
             value={editedName}
             onChange={handleChatNameChange}
-            onFocus={() => setEditedName(currentUser.chatName ? currentUser.chatName : currentUser.name)}
-            placeholder={currentUser.chatName ? currentUser.chatName : currentUser.name}
+            onFocus={() => setEditedName(currentUser.chatName || currentUser.name)}
+            placeholder={currentUser.chatName || currentUser.name}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 changeChatName(e.target.value);
               }
             }}
-          >
-          </input>
+          />
           <h4 className="text-sm sm:text-base mb-1">
             [{currentUser.description}]
           </h4>
@@ -422,9 +528,6 @@ const Chat = () => {
     </div>
   );
 
-
-
-
   // Detailed user view
   const personDetails = (
     <div>
@@ -441,7 +544,7 @@ const Chat = () => {
       </div>
 
       {/* Sidebar */}
-      <div className="relative lg:w-1/5 p-5 z-10">
+      <div className="relative lg:w-1/4 p-3 z-10">
         <div className="w-full">
           {/* User Profile */}
           <div className="flex items-center justify-between p-2">
@@ -456,7 +559,7 @@ const Chat = () => {
             <div className="flex items-center space-x-2">
               <button><TbEdit className="text-white icon-formatting"
                 onClick={() => {
-                  setAddChatWindowVisible(!addChatWindowVisible)
+                  setAddChatWindowVisible(!addChatWindowVisible);
                   setCurrentUser(null);
                 }}
               /></button>
@@ -479,10 +582,8 @@ const Chat = () => {
             <button
               className="ml-2 p-2 chat-bg rounded-md flex items-center justify-center hover:bg-opacity-20 transition-all duration-300"
               onClick={() => {
-
                 setAddChatWindowVisible(false);
                 setCurrentUser(null);
-
               }}
             >
               {displayOtherContent || currentUser || addChatWindowVisible ? (
@@ -490,30 +591,26 @@ const Chat = () => {
               ) : (
                 <TbPlus className="text-color icon-formatting" />
               )}
-
             </button>
           </div>
-
-          {/* Chat List */}
-          <div className="py-3">
-            {chatList}
-          </div>
+        </div>
+        {/* Chat List */}
+        <div className="py-3 flex-1 overflow-y-auto max-h-full">
+          {chatList}
         </div>
       </div>
 
       {/* Chat View */}
-      <div className={`chat-list ${!infoPanelVisible ? 'lg:w-3/5' : 'lg:w-4/5'} p-5 z-10`}>
-        {detailChatView || addChatWindow}
+      <div className={`chat-list ${!infoPanelVisible ? 'lg:w-2/4' : 'lg:w-3/4'} p-5 z-10`}>
+        {detailChatView || (friendChatSearch)}
       </div>
 
       {/* Detailed User View */}
       {!infoPanelVisible && currentUser && (
-        <div className="detail-view lg:w-1/5 p-5 z-10">
+        <div className="detail-view lg:w-1/4 p-5 z-10">
           {personDetails}
         </div>
       )}
     </div>
   );
-};
-
-export default Chat;
+}

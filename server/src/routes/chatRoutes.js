@@ -161,6 +161,59 @@ module.exports = function (jwtSecret, io) {
     });
     
 
+    router.post('/createChat', async (req, res) => {
+        try {
+            const { chatName, members } = req.body;
+            const msg = "Chat created by "+req.session.username;
+
+            if (!chatName || !members) {
+                return res.status(400).json({ error: 'Chat name and members are required' });
+            }
+            const date = new Date();
+            const chat = new Chat({
+                chatName: chatName,
+                users: members,
+                createdAt: date,
+                messages: [{
+                    senderId: req.session.username,
+                    text: msg,
+                    image: null,
+                    createdAt: date,
+                    msgType: 'info'
+                }]
+            });
+            const savedChat = await chat.save();
+            members.forEach(async (member) => {
+                const userChat = await UserChat.findOne({ userId: member });
+                const chat = {
+                    chatId: savedChat._id,
+                    chatName: chatName,
+                    senderId: req.session.username,
+                    lastMessage: msg, // or an appropriate initial value
+                    updatedAt: date,
+                    isSeen: false
+                }
+
+                if (!userChat) {
+                    const newUserChat = new UserChat({
+                        userId: member,
+                        chats: [chat]
+                    });
+                    await newUserChat.save();
+                } else {
+                    userChat.chats.push(chat);
+                    await userChat.save();
+                }
+            });
+            return res.status(200).json({ message: 'Chat created successfully' });
+
+        }
+        catch (error) {
+            console.error('Error creating chat:', error);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    });
+
     router.post('/updateChatName', async (req, res) => {
         const { chatId, newName } = req.body;
 
