@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["sans-serif", "Inter"],
+        sans: ["Inter", "sans-serif"],
       },
       borderRadius: {
         "4xl": "2rem",

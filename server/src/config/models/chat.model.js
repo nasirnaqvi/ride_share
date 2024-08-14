@@ -5,7 +5,6 @@ const { Schema } = mongoose;
 // id: { type: String, default: uuidv4 }, 
 
 const messageSchema = new Schema({
-    chatName: { type: String, required: true },
     senderId: { type: String, required: true },
     text: { type: String, required: true },
     image: { type: String },
@@ -26,7 +25,7 @@ const chatInfoSchema = new Schema({
 });
 
 const chatSchema = new Schema({
-    chatName: { type: String, required: true, unique: true },
+    chatName: { type: String, required: true},
     createdAt: { type: Date, default: Date.now },
     users: { type: [String], default: () => [] },
     messages: { type: [messageSchema], default: () => [] }
